@@ -4,7 +4,7 @@ use warnings;
 use Data::Dumper;
 
 BEGIN {
-    use_ok 'XML::PSAX::TieAttrs';
+    use_ok 'XML::Handler::ExtOn::TieAttrs';
 }
 my $t1_elemnt = {
     'Prefix'     => undef,
@@ -29,9 +29,9 @@ my $t1_elemnt = {
     'NamespaceURI' => undef
 };
 my $attr_converted =
-  &XML::PSAX::TieAttrs::attr_from_sax2( $t1_elemnt->{Attributes} );
+  &XML::Handler::ExtOn::TieAttrs::attr_from_sax2( $t1_elemnt->{Attributes} );
 my %attr_by_name = ();
-my $obj = tie %attr_by_name, 'XML::PSAX::TieAttrs', $attr_converted,
+my $obj = tie %attr_by_name, 'XML::Handler::ExtOn::TieAttrs', $attr_converted,
   by       => 'Prefix',
   value    => 'xlink',
   template => {
@@ -60,9 +60,9 @@ ok $attr_by_name{$test_attr} eq $test_val, "check set value to $test_val";
 %attr_by_name = ( attr2 => 123, 'er' => 1 );
 
 my $attr_converted1 =
-  &XML::PSAX::TieAttrs::attr_from_sax2( $t1_elemnt->{Attributes} );
+  &XML::Handler::ExtOn::TieAttrs::attr_from_sax2( $t1_elemnt->{Attributes} );
 my %attr_by_name1 = ();
-my $obj1 = tie %attr_by_name1, 'XML::PSAX::TieAttrs', $attr_converted1,
+my $obj1 = tie %attr_by_name1, 'XML::Handler::ExtOn::TieAttrs', $attr_converted1,
   by       => 'NamespaceURI',
   value    => 'http://www.w3.org/1999/xlink',
   template => {

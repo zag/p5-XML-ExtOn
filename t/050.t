@@ -2,17 +2,14 @@ use Test::More qw( no_plan);
 use strict;
 use warnings;
 BEGIN {
-    use_ok 'XML::PSAX';
+    use_ok 'XML::Handler::ExtOn';
     use_ok 'XML::Filter::SAX1toSAX2';
-    use_ok('XML::Filter::PSAXtoSAX2');
     use_ok 'XML::Parser::PerlSAX';
     use_ok 'XML::SAX::Writer';
-    use_ok 'XML::Filter::SAX2toPSAX';
 }
 my $str1;
 my $w1           = XML::SAX::Writer->new( Output         => \$str1 );
-my $psax2sax2_filter  = XML::Filter::PSAXtoSAX2->new( Handler => $w1 );
-my $psax_filter  = XML::Filter::SAX2toPSAX->new( Handler => $psax2sax2_filter );
+my $psax_filter  =XML::Handler::ExtOn->new( Handler => $w1 );
 my $sax2_filter = XML::Filter::SAX1toSAX2->new( Handler => $psax_filter );
 my $parser      = XML::Parser::PerlSAX->new( Handler    => $sax2_filter );
 my $xml         = &return_xml();

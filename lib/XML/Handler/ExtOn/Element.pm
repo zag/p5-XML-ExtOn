@@ -1,11 +1,11 @@
-package XML::PSAX::Element;
+package XML::Handler::ExtOn::Element;
 use strict;
 use warnings;
 
 use XML::NamespaceSupport;
 use Carp;
 use Data::Dumper;
-use XML::PSAX::TieAttrs;
+use XML::Handler::ExtOn::TieAttrs;
 
 sub new {
     my ( $class, %attr ) = @_;
@@ -14,7 +14,7 @@ sub new {
     my $attr = {};
     if ( $attr{sax2} ) {
         $attr =
-          &XML::PSAX::TieAttrs::attr_from_sax2( $attr{sax2}->{Attributes} );
+          &XML::Handler::ExtOn::TieAttrs::attr_from_sax2( $attr{sax2}->{Attributes} );
         my $sax2_attr = $attr{sax2} || {};
         $name ||= $sax2_attr->{Name};
     }
@@ -47,7 +47,7 @@ sub name {
 
 sub attrs_from_sax2 {
     my $self = shift;
-    my $attr = &XML::PSAX::TieAttrs::attr_from_sax2(shift);
+    my $attr = &XML::Handler::ExtOn::TieAttrs::attr_from_sax2(shift);
     $self->{__attrs} = $attr;
 }
 sub attrs_to_sax2 {
@@ -60,7 +60,7 @@ sub attrs_by_prefix {
     my %hash   = ();
     my $ns_uri = $self->{__xmlns}->get_uri($prefix)
       or die "get_uri($prefix) return undef";
-    tie %hash, 'XML::PSAX::TieAttrs', $self->{__attrs},
+    tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->{__attrs},
       by       => 'Prefix',
       value    => 'xlink',
       template => {
@@ -79,7 +79,7 @@ sub attrs_by_ns_uri {
     my %hash   = ();
     my $prefix = $self->{__xmlns}->get_prefix($ns_uri)
       or die "get_prefix($ns_uri) return undef";
-    tie %hash, 'XML::PSAX::TieAttrs', $self->{__attrs},
+    tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->{__attrs},
       by       => 'Prefix',
       value    => 'xlink',
       template => {

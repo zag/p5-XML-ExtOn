@@ -4,8 +4,9 @@ use warnings;
 use Data::Dumper;
 
 BEGIN {
-    use_ok 'XML::PSAX::Element';
+    use_ok 'XML::Handler::ExtOn::TieAttrs';
     use_ok 'XML::NamespaceSupport';
+    use_ok 'XML::Handler::ExtOn::Element';
 }
 
 =pod
@@ -46,7 +47,7 @@ $ns1->declare_prefix( $prefix1, $uri1 );
 diag $ns1->get_uri('xlink');
 $ns1->declare_prefix( 'test', 'http://www.w3.org/TR/REC-html40' );
 diag $ns1->get_uri('test');
-my $element = new XML::PSAX::Element::
+my $element = new XML::Handler::ExtOn::Element::
   name  => "p",
   xmlns => $ns1;
 $element->attrs_from_sax2($t1_elemnt->{Attributes});

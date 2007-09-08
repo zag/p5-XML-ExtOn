@@ -1,6 +1,6 @@
 #$Id: README,v 1.2 2006/10/13 12:39:08 zag Exp $
 
-PSAX 
+XML::Handler::ExtOn 
 ========================
 
 Environment which provide object-oriented stuff for create complex web application
