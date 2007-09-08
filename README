@@ -1,0 +1,36 @@
+#$Id: README,v 1.2 2006/10/13 12:39:08 zag Exp $
+
+PSAX 
+========================
+
+Environment which provide object-oriented stuff for create complex web application
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires  Perl 5.005 or greater and libraries:
+
+* XML::SAX
+
+
+AUTHOR
+
+Zahatski Aliaksandr
+zag@cpan.org
+
+COPYRIGHT AND LICENCE
+
+
+Copyright (C) 2007 Zahatski Aliaksandr
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself. 
+
