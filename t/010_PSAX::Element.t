@@ -5,8 +5,8 @@ use Data::Dumper;
 
 BEGIN {
     use_ok 'XML::Handler::ExtOn::TieAttrs';
-    use_ok 'XML::NamespaceSupport';
     use_ok 'XML::Handler::ExtOn::Element';
+    use_ok 'XML::Handler::ExtOn::Context';
 }
 
 =pod
@@ -18,7 +18,8 @@ BEGIN {
 
 =cut
 
-my $ns1 = new XML::NamespaceSupport:: { xmlns => 1, fatal_errors => 0 };
+my $ns1 = new XML::Handler::ExtOn::Context::;
+my  $context = $ns1;
 diag $ns1;
 my $t1_elemnt = {
     'Prefix'     => undef,
@@ -49,7 +50,7 @@ $ns1->declare_prefix( 'test', 'http://www.w3.org/TR/REC-html40' );
 diag $ns1->get_uri('test');
 my $element = new XML::Handler::ExtOn::Element::
   name  => "p",
-  xmlns => $ns1;
+  context=>$context;
 $element->attrs_from_sax2($t1_elemnt->{Attributes});
 ok my $ref_by_pref = $element->attrs_by_prefix($prefix1), "get attr by prefix: $prefix1";
 $ref_by_pref->{test} = 1;

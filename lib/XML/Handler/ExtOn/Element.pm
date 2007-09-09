@@ -6,18 +6,26 @@ use XML::NamespaceSupport;
 use Carp;
 use Data::Dumper;
 use XML::Handler::ExtOn::TieAttrs;
+for my $key (qw/ _context /) {
+    no strict 'refs';
+    *{ __PACKAGE__ . "::$key" } = sub {
+        my $self = shift;
+        $self->{$key} = $_[0] if @_;
+        return $self->{$key};
+      }
+}
 
 sub new {
     my ( $class, %attr ) = @_;
     my $self = bless {}, $class;
-    $self->{__xmlns} = $attr{xmlns} || die "not exists xmlns parametr";
+    $self->_context($attr{context}) or die "not exists context parametr";
     my $name = $attr{name};
-    my $attr = {};
+    my $attr_a = {};
     if ( $attr{sax2} ) {
-        $attr =
+        $attr_a =
           &XML::Handler::ExtOn::TieAttrs::attr_from_sax2( $attr{sax2}->{Attributes} );
         my $sax2_attr = $attr{sax2} || {};
-        foreach my $a ( values %$attr) {
+        foreach my $a ( values %$attr_a) {
             my ( $prefix, $ns_uri) = ( $a->{Prefix}, $a->{NamespaceURI} );
             if ( defined $prefix &&  $prefix eq 'xmlns' ) {
                $self->add_namespace($a->{LocalName}, $a->{Value}) 
@@ -29,7 +37,7 @@ sub new {
         #now cover namespaces
     }
     $self->_set_name($name);
-    $self->{__attrs} = $attr;
+    $self->{__attrs} = $attr_a;
     return $self;
 }
 
@@ -44,9 +52,12 @@ sub set_prefix {
     $self->{__prefix}
 }
 
+sub ns {
+    return $_[0]->_context;
+}
 sub add_namespace {
     my $self = shift;
-    $self->{__xmlns}->declare_prefix(@_);
+    $self->ns->declare_prefix(@_);
 }
 sub set_ns_uri {
     my $self = shift;
@@ -75,7 +86,7 @@ sub attrs_by_prefix {
     my $self   = shift;
     my $prefix = shift;
     my %hash   = ();
-    my $ns_uri = $self->{__xmlns}->get_uri($prefix)
+    my $ns_uri = $self->ns->get_uri($prefix)
       or die "get_uri($prefix) return undef";
     tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->{__attrs},
       by       => 'Prefix',
@@ -94,7 +105,7 @@ sub attrs_by_ns_uri {
     my $self   = shift;
     my $ns_uri = shift;
     my %hash   = ();
-    my $prefix = $self->{__xmlns}->get_prefix($ns_uri)
+    my $prefix = $self->ns->get_prefix($ns_uri)
       or die "get_prefix($ns_uri) return undef";
     tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->{__attrs},
       by       => 'Prefix',

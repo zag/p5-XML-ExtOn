@@ -36,9 +36,11 @@ use base 'XML::Handler::ExtOn';
 
 sub on_start_element {
     my ( $self, $elem ) = @_;
-    warn Dumper($elem);
-#    warn Dumper(
-#        { 'Element' => ref $elem, '*:xml' => $elem->attrs_by_prefix('xlink'), 'attr'=>$elem->{__attrs} }
-#    );
+    warn $elem->_context;
+    $elem->ns->declare_prefix('odd'=>'http://ofddd.com/ns');
+    if ( $elem->local_name eq 'p') {
+        my $odd = $elem->attrs_by_prefix('odd');
+        %$odd = ( odd1=>1, odd2=>2);
+    }
     return $elem;
 }
