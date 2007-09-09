@@ -36,8 +36,9 @@ use base 'XML::Handler::ExtOn';
 
 sub on_start_element {
     my ( $self, $elem ) = @_;
-    warn $elem->_context;
-    $elem->ns->declare_prefix('odd'=>'http://ofddd.com/ns');
+#    warn $elem->_context;
+    $elem->add_namespace(''=>"http://localhost/doc_com");
+    $elem->add_namespace('odd'=>'http://ofddd.com/ns');
     if ( $elem->local_name eq 'p') {
         my $odd = $elem->attrs_by_prefix('odd');
         %$odd = ( odd1=>1, odd2=>2);

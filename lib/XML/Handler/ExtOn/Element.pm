@@ -69,6 +69,11 @@ sub name {
     return $_[0]->_set_name();
 }
 
+=head2 local_name
+
+Return localname of elemnt ( without prefix )
+
+=cut
 sub local_name {
     return $_[0]->_set_name();
 }
@@ -108,14 +113,14 @@ sub attrs_by_ns_uri {
     my $prefix = $self->ns->get_prefix($ns_uri)
       or die "get_prefix($ns_uri) return undef";
     tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->{__attrs},
-      by       => 'Prefix',
-      value    => $prefix,
+      by       => 'NamespaceURI',
+      value    => $ns_uri,
       template => {
         Value        => '',
-        NamespaceURI => $ns_uri,
+        NamespaceURI => '',
         Name         => '',
         LocalName    => '',
-        Prefix       => ''
+        Prefix       => $prefix
       };
     return \%hash
 

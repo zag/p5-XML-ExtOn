@@ -18,8 +18,8 @@ BEGIN {
 
 =cut
 
-my $ns1 = new XML::Handler::ExtOn::Context::;
-my  $context = $ns1;
+my $ns1     = new XML::Handler::ExtOn::Context::;
+my $context = $ns1;
 diag $ns1;
 my $t1_elemnt = {
     'Prefix'     => undef,
@@ -49,14 +49,15 @@ diag $ns1->get_uri('xlink');
 $ns1->declare_prefix( 'test', 'http://www.w3.org/TR/REC-html40' );
 diag $ns1->get_uri('test');
 my $element = new XML::Handler::ExtOn::Element::
-  name  => "p",
-  context=>$context;
-$element->attrs_from_sax2($t1_elemnt->{Attributes});
-ok my $ref_by_pref = $element->attrs_by_prefix($prefix1), "get attr by prefix: $prefix1";
+  name    => "p",
+  context => $context;
+$element->attrs_from_sax2( $t1_elemnt->{Attributes} );
+ok my $ref_by_pref = $element->attrs_by_prefix($prefix1),
+  "get attr by prefix: $prefix1";
 $ref_by_pref->{test} = 1;
 ok my $ref_by_uri = $element->attrs_by_ns_uri($uri1), "get attr by uri: $uri1";
-is_deeply $ref_by_pref,$ref_by_uri,'check by pref and by uri';
-#diag Dumper($ref_by_pref);
+#diag Dumper($ref_by_pref, $ref_by_uri);
+is_deeply $ref_by_pref, $ref_by_uri, 'check by pref and by uri';
 
 #diag Dumper ( (tied %{$ref_by_pref} )->_orig_hash );
 
