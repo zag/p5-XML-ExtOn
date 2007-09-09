@@ -30,10 +30,7 @@ sub mk_element {
 sub __mk_element_from_sax2 {
     my $self = shift;
     my $data = shift;
-    my $elem = $self->mk_element( $data->{LocalName} );
-    $elem->attrs_from_sax2( $data->{Attributes} );
-    $elem->set_prefix( $data->{Prefix} || '' );
-    $elem->set_ns_uri( $data->{NamespaceURI} );
+    my $elem = $self->mk_element( $data->{LocalName}, sax2=> $data );
     return $elem;
 }
 
@@ -42,7 +39,7 @@ sub __exp_element_to_sax2 {
     my $elem = shift;
     my $data = {
         Prefix     => $elem->set_prefix,
-        LocalName  => $elem->name,
+        LocalName  => $elem->local_name,
         Attributes => $elem->attrs_to_sax2,
         Name       => $elem->set_prefix
         ? $elem->set_prefix() . ":" . $elem->name

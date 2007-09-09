@@ -10,16 +10,24 @@ use XML::Handler::ExtOn::TieAttrs;
 sub new {
     my ( $class, %attr ) = @_;
     my $self = bless {}, $class;
+    $self->{__xmlns} = $attr{xmlns} || die "not exists xmlns parametr";
     my $name = $attr{name};
     my $attr = {};
     if ( $attr{sax2} ) {
         $attr =
           &XML::Handler::ExtOn::TieAttrs::attr_from_sax2( $attr{sax2}->{Attributes} );
         my $sax2_attr = $attr{sax2} || {};
+        foreach my $a ( values %$attr) {
+            my ( $prefix, $ns_uri) = ( $a->{Prefix}, $a->{NamespaceURI} );
+            if ( defined $prefix &&  $prefix eq 'xmlns' ) {
+               $self->add_namespace($a->{LocalName}, $a->{Value}) 
+            }
+        }
         $name ||= $sax2_attr->{Name};
-        warn Dumper($attr);
+        $self->set_prefix( $sax2_attr->{Prefix} || '' );
+        $self->set_ns_uri( $sax2_attr->{NamespaceURI} );
+        #now cover namespaces
     }
-    $self->{__xmlns} = $attr{xmlns} || die "not exists xmlns parametr";
     $self->_set_name($name);
     $self->{__attrs} = $attr;
     return $self;
@@ -36,6 +44,10 @@ sub set_prefix {
     $self->{__prefix}
 }
 
+sub add_namespace {
+    my $self = shift;
+    $self->{__xmlns}->declare_prefix(@_);
+}
 sub set_ns_uri {
     my $self = shift;
     $self->{__ns_iri} = shift if @_;
@@ -43,6 +55,10 @@ sub set_ns_uri {
 }
 
 sub name {
+    return $_[0]->_set_name();
+}
+
+sub local_name {
     return $_[0]->_set_name();
 }
 
