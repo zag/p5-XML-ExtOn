@@ -9,28 +9,13 @@ BEGIN {
 }
 my $str1;
 my $w1           = XML::SAX::Writer->new( Output         => \$str1 );
-my $psax_filter  =XML::Handler::ExtOn->new( Handler => $w1 );
+my $psax_filter  = MyHandler->new( Handler => $w1 );
 my $sax2_filter = XML::Filter::SAX1toSAX2->new( Handler => $psax_filter );
 my $parser      = XML::Parser::PerlSAX->new( Handler    => $sax2_filter );
 my $xml         = &return_xml();
 my $result = $parser->parse( Source => { String => "$xml" } );
 diag $str1;
 exit;
-my $str;
-my $w = XML::SAX::Writer->new( Output => \$str );
-my $site_parser = $w;
-$site_parser->start_document;
-$site_parser->start_prefix_mapping(
-    { Prefix => 'xlink', NamespaceURI => 'http://www.w3.org/1999/xlink' } );
-$site_parser->start_prefix_mapping(
-    { Prefix => '', NamespaceURI => 'http://zag.ru' } );
-$site_parser->start_element( { Name => "Document" } );
-$site_parser->start_element( { Name=>"p",});
-$site_parser->characters({Data=>"test"});    
-$site_parser->end_element( { Name=>"p"});
-$site_parser->end_element( { Name => "Document" } );
-$site_parser->end_document;
-#diag $str;
 
 sub return_xml {
  return <<EOT;
@@ -42,3 +27,13 @@ sub return_xml {
 EOT
 }
 
+package MyHandler;
+use Data::Dumper;
+use strict;
+use warnings;
+use base 'XML::Handler::ExtOn';
+sub on_start_element {
+    my ($self , $elem) = @_;
+    warn Dumper({'Element'=>ref $elem, '*:xml'=>$elem->attrs_by_prefix('xlink')});
+    return $elem;
+}

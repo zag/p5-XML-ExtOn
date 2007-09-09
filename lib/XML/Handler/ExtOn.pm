@@ -19,8 +19,10 @@ sub start_document {
 sub mk_element {
     my $self = shift;
     my $name = shift;
+    my %args = @_;
     my $elem = new XML::Handler::ExtOn::Element::
       name  => $name,
+      %args,
       xmlns => $self->{__xmlns};
     return $elem;
 }

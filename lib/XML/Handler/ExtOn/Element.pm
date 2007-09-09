@@ -17,6 +17,7 @@ sub new {
           &XML::Handler::ExtOn::TieAttrs::attr_from_sax2( $attr{sax2}->{Attributes} );
         my $sax2_attr = $attr{sax2} || {};
         $name ||= $sax2_attr->{Name};
+        warn Dumper($attr);
     }
     $self->{__xmlns} = $attr{xmlns} || die "not exists xmlns parametr";
     $self->_set_name($name);
@@ -62,7 +63,7 @@ sub attrs_by_prefix {
       or die "get_uri($prefix) return undef";
     tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->{__attrs},
       by       => 'Prefix',
-      value    => 'xlink',
+      value    => $prefix,
       template => {
         Value        => '',
         NamespaceURI => $ns_uri,
@@ -81,7 +82,7 @@ sub attrs_by_ns_uri {
       or die "get_prefix($ns_uri) return undef";
     tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->{__attrs},
       by       => 'Prefix',
-      value    => 'xlink',
+      value    => $prefix,
       template => {
         Value        => '',
         NamespaceURI => $ns_uri,
