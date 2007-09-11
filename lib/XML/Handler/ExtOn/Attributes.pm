@@ -1,4 +1,5 @@
 package XML::Handler::ExtOn::Attributes;
+#$Id$
 
 use Carp;
 use Data::Dumper;
