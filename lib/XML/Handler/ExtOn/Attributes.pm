@@ -1,4 +1,5 @@
 package XML::Handler::ExtOn::Attributes;
+
 #$Id$
 
 use Carp;
@@ -82,13 +83,19 @@ sub ns {
     return $_[0]->_context;
 }
 
+=head2 by_prefix $prefix
+
+Create hash for attributes by prefix $prefix
+
+=cut
+
 sub by_prefix {
     my $self   = shift;
     my $prefix = shift;
     my %hash   = ();
     my $ns_uri = $self->ns->get_uri($prefix)
       or die "get_uri($prefix) return undef";
-    tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->{__attrs},
+    tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->_a_stack,
       by       => 'Prefix',
       value    => $prefix,
       template => {
@@ -101,13 +108,19 @@ sub by_prefix {
     return \%hash;
 }
 
+=head2 by_ns_uri $ns_uri
+
+Create hash for attributes for namespace $ns_uri
+
+=cut
+
 sub by_ns_uri {
     my $self   = shift;
     my $ns_uri = shift;
     my %hash   = ();
     my $prefix = $self->ns->get_prefix($ns_uri)
       or die "get_prefix($ns_uri) return undef";
-    tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->{__attrs},
+    tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->_a_stack,
       by       => 'NamespaceURI',
       value    => $ns_uri,
       template => {

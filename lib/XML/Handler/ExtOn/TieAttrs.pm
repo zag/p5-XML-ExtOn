@@ -33,7 +33,7 @@ sub attr_from_sax2 {
           @{$value}{qw/ Prefix LocalName NamespaceURI/};
         $prefix = '' unless defined $prefix;
         $ns_uri = '' unless defined $ns_uri;
-        $res{qq/{$ns_uri}$name/} = { %$value };
+        $res{qq/{$ns_uri}$name/} = {%$value};
     }
     return \%res;
 }
@@ -86,11 +86,13 @@ sub get_by_filter {
     my $ahash       = $self->_orig_hash;
     my %res         = ();
     my ( $field_name, $value ) = @{ $self->_default() };
-    while ( my ( $key, $val ) = each %$ahash ) {
+    my $i = -1;
+    foreach my $val (@$ahash) {
+        $i++;
         next unless $val->{$field_name};
         next unless $val->{$field_name} eq $value;
         next if defined $flocal_name && $val->{LocalName} ne $flocal_name;
-        $res{$key} = $val;
+        $res{$i} = $val;
     }
     return \%res;
 }
@@ -100,17 +102,20 @@ sub create_attr {
     my $key      = shift;
     my %template =
       ( %{ $self->_template() }, @{ $self->_default() }, LocalName => $key );
-    $template{Name} = join ':' => @template{qw/ Prefix LocalName/};
+    my $prefix     = $template{Prefix};
+    my $local_name = $template{LocalName};
+    $template{Name} = $prefix ? "$prefix:$local_name" : $local_name;
     return attr_from_sax2( { 1 => \%template } );
 }
 
 sub DELETE {
     my ( $self, $key )   = @_;
-    my ( $fkey,  $fhash ) = %{ $self->get_by_filter($key) };
+    my ( $fkey, $fhash ) = %{ $self->get_by_filter($key) };
     return unless $fhash;
     my $val   = $fhash->{Value};
     my $ahash = $self->_orig_hash;
-    delete $ahash->{$fkey};
+    delete $ahash->[$fkey];
+    @{$ahash} = grep { defined } @{$ahash};
     return $val;
 }
 
@@ -124,7 +129,9 @@ sub STORE {
         my $new_add_to_hash = $self->create_attr($key);
         my $ahash           = $self->_orig_hash;
         while ( my ( $pkey, $pval ) = each %$new_add_to_hash ) {
-            $ahash->{$pkey} = $pval;
+
+            #        $ahash->{$pkey} = $pval;
+            push @{$ahash}, $pval;
         }
         $self->STORE( $key, $val );
     }

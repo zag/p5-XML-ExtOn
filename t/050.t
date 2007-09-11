@@ -22,7 +22,7 @@ sub return_xml {
     return <<EOT;
 <?xml version="1.0"?>
 <Document xmlns="http://test.com/defaultns" xmlns:nodef='http://zag.ru' xmlns:xlink='http://www.w3.org/1999/xlink'>
-    <nodef:p xlink:xtest="1" attr="1">test</nodef:p>
+    <nodef:p xlink:xtest="1" attr="1"><a href="sdsd">TTT<pe>Ooee</pe></a>test</nodef:p>
     <p defaulttest="1" xlink:attr="1" xlink:attr2="1">test</p>
 </Document>
 EOT
@@ -37,19 +37,26 @@ use base 'XML::Handler::ExtOn';
 sub on_start_element {
     my ( $self, $elem ) = @_;
 
-    #    warn $elem->_context;
+    #    warn "defult uri for :". $elem->local_name. " = ". $elem->default_uri;
     if ( $elem->local_name eq 'p' ) {
         $elem->add_namespace( ''    => "http://localhost/doc_com" );
         $elem->add_namespace( 'odd' => 'http://ofddd.com/ns' );
         my $odd = $elem->attrs_by_prefix('odd');
         %$odd = ( odd1 => 1, odd2 => 2 );
     }
+    if ( $elem->local_name eq 'a' ) {
+        $elem->skip_content(1);
+    }
     return $elem;
 }
 
 sub on_end_element {
     my $self = shift;
-    my ( $data, $elem ) = @_;
-    warn "End Element:" . Dumper($data);
+    my ( $elem, $data ) = @_;
+
+#    warn "End Element:" .Dumper([$elem->set_prefix,$elem->set_ns_uri]);#to_sax2);
+#    warn "End Element:data" .Dumper($data);
+#    warn "End Element:ns" .Dumper($elem->ns->get_map);
+#    warn "End Element:" . Dumper($data, $elem);
 }
 

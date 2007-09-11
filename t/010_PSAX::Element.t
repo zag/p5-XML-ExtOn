@@ -50,8 +50,7 @@ $ns1->declare_prefix( 'test', 'http://www.w3.org/TR/REC-html40' );
 diag $ns1->get_uri('test');
 my $element = new XML::Handler::ExtOn::Element::
   name    => "p",
-  context => $context;
-$element->attrs_from_sax2( $t1_elemnt->{Attributes} );
+  context => $context, sax2 => $t1_elemnt;
 ok my $ref_by_pref = $element->attrs_by_prefix($prefix1),
   "get attr by prefix: $prefix1";
 $ref_by_pref->{test} = 1;
@@ -103,6 +102,6 @@ my $context2 = new XML::Handler::ExtOn::Context::;
 my $element2 = new XML::Handler::ExtOn::Element::
   context => $context2,
   sax2    => $t2_element;
-diag Dumper $element2->ns->get_map;
-diag Dumper $element2->{__attrs};
+#diag Dumper $element2->ns->get_map;
+#diag Dumper $element2->{__attrs};
 
