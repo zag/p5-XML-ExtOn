@@ -36,12 +36,20 @@ use base 'XML::Handler::ExtOn';
 
 sub on_start_element {
     my ( $self, $elem ) = @_;
-#    warn $elem->_context;
-    $elem->add_namespace(''=>"http://localhost/doc_com");
-    $elem->add_namespace('odd'=>'http://ofddd.com/ns');
-    if ( $elem->local_name eq 'p') {
+
+    #    warn $elem->_context;
+    if ( $elem->local_name eq 'p' ) {
+        $elem->add_namespace( ''    => "http://localhost/doc_com" );
+        $elem->add_namespace( 'odd' => 'http://ofddd.com/ns' );
         my $odd = $elem->attrs_by_prefix('odd');
-        %$odd = ( odd1=>1, odd2=>2);
+        %$odd = ( odd1 => 1, odd2 => 2 );
     }
     return $elem;
 }
+
+sub on_end_element {
+    my $self = shift;
+    my ( $data, $elem ) = @_;
+    warn "End Element:" . Dumper($data);
+}
+

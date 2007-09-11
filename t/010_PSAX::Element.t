@@ -56,8 +56,53 @@ ok my $ref_by_pref = $element->attrs_by_prefix($prefix1),
   "get attr by prefix: $prefix1";
 $ref_by_pref->{test} = 1;
 ok my $ref_by_uri = $element->attrs_by_ns_uri($uri1), "get attr by uri: $uri1";
+
 #diag Dumper($ref_by_pref, $ref_by_uri);
 is_deeply $ref_by_pref, $ref_by_uri, 'check by pref and by uri';
 
 #diag Dumper ( (tied %{$ref_by_pref} )->_orig_hash );
+#test import - export
+my $t2_element = {
+    'Prefix'     => 'nodef',
+    'LocalName'  => 'p',
+    'Attributes' => {
+        '{}attr' => {
+            'LocalName'    => 'attr',
+            'Prefix'       => undef,
+            'Value'        => '1',
+            'Name'         => 'attr',
+            'NamespaceURI' => undef
+        },
+        '{http://www.w3.org/2000/xmlns/}xlink' => {
+            'LocalName'    => 'xlink',
+            'Prefix'       => 'xmlns',
+            'Value'        => 'http://www.w3.org/1999/xlink',
+            'Name'         => 'xmlns:xlink',
+            'NamespaceURI' => 'http://www.w3.org/2000/xmlns/'
+        },
+        '{http://www.w3.org/1999/xlink}xtest' => {
+            'LocalName'    => 'xtest',
+            'Prefix'       => 'xlink',
+            'Value'        => '1',
+            'Name'         => 'xlink:xtest',
+            'NamespaceURI' => 'http://www.w3.org/1999/xlink'
+        },
+        '{http://www.w3.org/2000/xmlns/}nodef' => {
+            'LocalName'    => 'nodef',
+            'Prefix'       => 'xmlns',
+            'Value'        => 'http://zag.ru',
+            'Name'         => 'xmlns:nodef',
+            'NamespaceURI' => 'http://www.w3.org/2000/xmlns/'
+        },
+
+    },
+    'Name'         => 'nodef:p',
+    'NamespaceURI' => 'http://zag.ru'
+};
+my $context2 = new XML::Handler::ExtOn::Context::;
+my $element2 = new XML::Handler::ExtOn::Element::
+  context => $context2,
+  sax2    => $t2_element;
+diag Dumper $element2->ns->get_map;
+diag Dumper $element2->{__attrs};
 
