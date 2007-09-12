@@ -5,14 +5,16 @@ use warnings;
 use Carp;
 use Data::Dumper;
 
-#use XML::NamespaceSupport;
 use XML::SAX::Base;
 use XML::Handler::ExtOn::Element;
 use XML::Handler::ExtOn::Context;
+use XML::Filter::SAX1toSAX2;
+use XML::Parser::PerlSAX;
+
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
 ### install get/set accessors for this object.
-for my $key (qw/ context _objects_stack/) {
+for my $key (qw/ context _objects_stack /) {
     no strict 'refs';
     *{ __PACKAGE__ . "::$key" } = sub {
         my $self = shift;
@@ -23,6 +25,7 @@ for my $key (qw/ context _objects_stack/) {
 
 sub start_document {
     my ( $self, $document ) = @_;
+    return if $self->{___EXT_on_attrs}->{_skip_start_docs}++;
     my $doc_context = new XML::Handler::ExtOn::Context::;
     $self->context($doc_context);
     $self->_objects_stack( [] );
@@ -43,6 +46,25 @@ sub mk_element {
     return $elem;
 }
 
+=head2 mk_from_xml <xml string>
+
+Return xml parser for include to stream
+
+=cut
+
+sub mk_from_xml {
+    my $self        = shift;
+    my $string      = shift;
+    my $sax2_filter = XML::Filter::SAX1toSAX2->new( Handler => $self );
+    my $parser      = XML::Parser::PerlSAX->new(
+        {
+            Handler => $sax2_filter,
+            Source  => { String => $string }
+        }
+    );
+    return $parser;
+}
+
 sub __mk_element_from_sax2 {
     my $self = shift;
     my $data = shift;
@@ -61,13 +83,34 @@ sub on_start_element {
     return @_;
 }
 
+=head2 on_characters( $self->current_element, $data->{Data} )
+
+return string for write 
+
+=cut
+
+sub on_characters {
+    my ( $self, $elem, $str ) = @_;
+    return $str;
+}
+
 sub characters {
     my $self = shift;
     my ($data) = @_;
-    return if $self->current_element->skip_content;
 
-#    warn Dumper ({'$data'=>$data, 'current'=>$self->_objects_stack()->[-1]->local_name});
-    return $self->SUPER::characters(@_);
+    #skip childs elements characters ( > 1 ) and self text ( > 0)
+    return if $self->current_element->is_skip_content;
+
+    #collect chars fo current element
+    if (
+        defined(
+            my $str =
+              $self->on_characters( $self->current_element, $data->{Data} )
+        )
+       )
+    {
+        return $self->SUPER::characters( { Data => $str } );
+    }
 }
 
 sub current_element {
@@ -78,22 +121,19 @@ sub current_element {
 sub start_element {
     my $self = shift;
     my $data = shift;
-    return $self->SUPER::start_element($data)
-      unless $self->can('on_start_element');
 
     #check current element for skip_content
     if ( my $current_element = $self->current_element ) {
-        my $skip_content = $current_element->skip_content;
-
-#        warn "Start: ". $current_element->name." skip: $skip_content".Dumper($data);
+        my $skip_content = $current_element->is_skip_content;
         if ($skip_content) {
-            $current_element->skip_content( ++$skip_content );
-
-            #            warn "skip on start" . Dumper($data);
+            $current_element->is_skip_content( ++$skip_content );
             return;
         }
     }
-    my $elem        = $self->__mk_element_from_sax2($data);
+    my $elem =
+      UNIVERSAL::isa( $data, 'XML::Handler::ExtOn::Element' )
+      ? $data
+      : $self->__mk_element_from_sax2($data);
     my $res_element = $self->on_start_element($elem);
     my $res_data    = $self->__exp_element_to_sax2($res_element);
 
@@ -120,8 +160,8 @@ sub start_element {
 
     #save element in stack
     push @{ $self->_objects_stack() }, $res_element;
-
-    #    return if $res_element->skip_content;
+    #skip deleted elements from xml stream
+    return if $res_element->is_delete_element;
     return $self->SUPER::start_element($res_data);
 }
 
@@ -130,20 +170,23 @@ sub on_end_element {
     return @_;
 }
 
+sub end_document {
+    my $self = shift;
+    my $var  = --$self->{___EXT_on_attrs}->{_skip_start_docs};
+    return if $var;
+    $self->SUPER::end_document(@_);
+}
+
 sub end_element {
     my $self = shift;
     my $data = shift;
 
     #check current element for skip_content
     if ( my $current_element = $self->current_element ) {
-        my $skip_content = $current_element->skip_content;
-
-#        warn "End: ". $current_element->name." skip: $skip_content".Dumper($data);
-        if ($skip_content) {
-            $current_element->skip_content( --$skip_content );
-
-            #            warn "skip " . Dumper($data) if $skip_content == 1;
-            return if $skip_content == 1;
+        my $skip_content = $current_element->is_skip_content;
+        if ( $skip_content > 1 ) {
+            $current_element->is_skip_content( --$skip_content );
+            return
 
         }
     }
@@ -159,7 +202,7 @@ sub end_element {
 
     $self->on_end_element( $current_obj, $data );
 
-    $self->SUPER::end_element($data);
+    $self->SUPER::end_element($data) unless $current_obj->is_delete_element;
     my $changes    = $current_obj->ns->get_changes;
     my $parent_map = $current_obj->ns->parent->get_map;
     for ( keys %$changes ) {

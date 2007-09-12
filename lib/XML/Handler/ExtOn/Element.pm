@@ -7,7 +7,7 @@ use Carp;
 use Data::Dumper;
 use XML::Handler::ExtOn::TieAttrs;
 use XML::Handler::ExtOn::Attributes;
-for my $key (qw/ _context attributes _skip_content/) {
+for my $key (qw/ _context attributes _skip_content _delete_element/) {
     no strict 'refs';
     *{ __PACKAGE__ . "::$key" } = sub {
         my $self = shift;
@@ -144,13 +144,38 @@ sub attrs_by_ns_uri {
 }
 =head2 skip_content
 
-Skip enttry of element
+Skip entry of element. Return $self
 
 =cut
 
 sub skip_content {
     my $self = shift;
-    $self->_skip_content(@_) || 0;
+    return 1 if $self->is_skip_content;
+    $self->is_skip_content(1);
+    $self;
+}
+
+sub is_skip_content {
+    my $self = shift;
+    $self->_skip_content(@_) || 0
+}
+
+=head delete_element
+
+Delete start and close element from stream. return $self
+
+=cut
+
+sub delete_element {
+    my $self = shift;
+    return 1 if $self->is_delete_element;
+    $self->is_delete_element(1);
+    $self;
+}
+
+sub is_delete_element {
+    my $self = shift;
+    $self->_delete_element(@_) || 0
 }
 
 1;

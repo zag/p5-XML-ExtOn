@@ -32,6 +32,8 @@ package MyHandler;
 use Data::Dumper;
 use strict;
 use warnings;
+use XML::Filter::SAX1toSAX2;
+use XML::Parser::PerlSAX;
 use base 'XML::Handler::ExtOn';
 
 sub on_start_element {
@@ -45,7 +47,9 @@ sub on_start_element {
         %$odd = ( odd1 => 1, odd2 => 2 );
     }
     if ( $elem->local_name eq 'a' ) {
-        $elem->skip_content(1);
+#        $elem->skip_content->delete_element;
+#        $elem->skip_content;
+        $elem->delete_element;
     }
     return $elem;
 }
@@ -53,10 +57,23 @@ sub on_start_element {
 sub on_end_element {
     my $self = shift;
     my ( $elem, $data ) = @_;
+#    warn " End Element : " . Dumper($data) . " : " . $elem->skip_content;
+    if ( $elem->is_skip_content  && $elem->is_delete_element) {
+       my $parser = $self->mk_from_xml( "<OOO>TEST</OOO>");#->parse;
+        warn '$parser:'.$parser;
+#    $parser->parse;
+    }
 
 #    warn "End Element:" .Dumper([$elem->set_prefix,$elem->set_ns_uri]);#to_sax2);
 #    warn "End Element:data" .Dumper($data);
 #    warn "End Element:ns" .Dumper($elem->ns->get_map);
 #    warn "End Element:" . Dumper($data, $elem);
+}
+
+sub on_characters {
+    my $self = shift;
+    my ( $elem, $str ) = @_;
+    $elem->{__chars} .= $str;
+    return $str;
 }
 
