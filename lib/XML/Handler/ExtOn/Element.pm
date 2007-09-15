@@ -7,7 +7,8 @@ use Carp;
 use Data::Dumper;
 use XML::Handler::ExtOn::TieAttrs;
 use XML::Handler::ExtOn::Attributes;
-for my $key (qw/ _context attributes _skip_content _delete_element/) {
+use XML::Handler::ExtOn::Element;
+for my $key (qw/ _context attributes _skip_content _delete_element _stack /) {
     no strict 'refs';
     *{ __PACKAGE__ . "::$key" } = sub {
         my $self = shift;
@@ -43,6 +44,7 @@ sub new {
         $self->set_prefix( $sax2->{Prefix} || '' );
         $self->set_ns_uri( $self->ns->get_uri( $self->set_prefix() ) );
     }
+    $self->_stack([]);
     $self->_set_name($name);
     return $self;
 }
@@ -50,6 +52,40 @@ sub new {
 sub _set_name {
     my $self = shift;
     $self->{__name} = shift || return $self->{__name};
+}
+
+=head2 add_content 
+
+Add commands to content stack.Return $self
+
+=cut
+
+sub add_content {
+    my $self = shift;
+    push @{$self->_stack()}, @_;
+    return $self
+}
+
+sub default_ns_uri {
+    return $_[0]->ns->get_uri('')
+}
+
+=head2 mk_element <tag name>
+
+Create element object  in namespace of element.
+
+
+=cut
+
+sub mk_element {
+    my $self = shift;
+    my $name = shift;
+    my %args = @_;
+    $args{context} ||= $self->ns->sub_context();
+    my $elem = new XML::Handler::ExtOn::Element::
+      name => $name,
+      %args;
+    return $elem;
 }
 
 sub set_prefix {
@@ -68,7 +104,7 @@ sub ns {
 
 =head2 add_namespace $prefix => $namespace_uri
 
-Add Namespace mapping 
+Add Namespace mapping. return $self
 
 =cut
 
@@ -81,6 +117,7 @@ sub add_namespace {
     unless ( $default1_uri ne $default2_uri ) {
         $self->set_prefix('') unless $self->set_prefix;
     }
+    $self
 }
 
 sub set_ns_uri {

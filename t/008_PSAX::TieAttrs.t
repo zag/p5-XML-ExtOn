@@ -69,36 +69,40 @@ my $obj = tie %attr_by_name, 'XML::Handler::ExtOn::TieAttrs', $stack,
   };
 
 is_deeply \%attr_by_name, { 'attr' => '1' }, 'check \%attr_by_name';
-$attr_by_name{attr2} =3;
-is_deeply \%attr_by_name,{
-          'attr' => '1',
-          'attr2' => 3
-        }, 'check $attr_by_name{attr2} =3';
-$attr_by_name{attr3} =3;
+$attr_by_name{attr2} = 3;
+is_deeply \%attr_by_name,
+  {
+    'attr'  => '1',
+    'attr2' => 3
+  },
+  'check $attr_by_name{attr2} =3';
+$attr_by_name{attr3} = 3;
 delete $attr_by_name{attr2};
-is_deeply $obj->_orig_hash, [
-          {
-            'LocalName' => 'attr',
-            'Prefix' => 'xlink',
-            'Value' => '1',
-            'Name' => 'xlink:attr',
-            'NamespaceURI' => 'http://www.w3.org/1999/xlink'
-          },
-          {
-            'LocalName' => 'defaulttest',
-            'Prefix' => undef,
-            'Value' => '1',
-            'Name' => 'defaulttest',
-            'NamespaceURI' => 'http://www.w3.org/2000/xmlns/'
-          },
-          {
-            'Prefix' => 'xlink',
-            'LocalName' => 'attr3',
-            'Value' => 3,
-            'Name' => 'xlink:attr3',
-            'NamespaceURI' => 'http://www.w3.org/1999/xlink'
-          }
-        ], 'check  $attr_by_name{attr3} =3;delete $attr_by_name{attr2}';
+is_deeply $obj->_orig_hash,
+  [
+    {
+        'LocalName'    => 'attr',
+        'Prefix'       => 'xlink',
+        'Value'        => '1',
+        'Name'         => 'xlink:attr',
+        'NamespaceURI' => 'http://www.w3.org/1999/xlink'
+    },
+    {
+        'LocalName'    => 'defaulttest',
+        'Prefix'       => undef,
+        'Value'        => '1',
+        'Name'         => 'defaulttest',
+        'NamespaceURI' => 'http://www.w3.org/2000/xmlns/'
+    },
+    {
+        'Prefix'       => 'xlink',
+        'LocalName'    => 'attr3',
+        'Value'        => 3,
+        'Name'         => 'xlink:attr3',
+        'NamespaceURI' => 'http://www.w3.org/1999/xlink'
+    }
+  ],
+  'check  $attr_by_name{attr3} =3;delete $attr_by_name{attr2}';
 
 my %attr_by_name1 = ();
 my $obj1 = tie %attr_by_name1, 'XML::Handler::ExtOn::TieAttrs', $stack,
@@ -112,29 +116,33 @@ my $obj1 = tie %attr_by_name1, 'XML::Handler::ExtOn::TieAttrs', $stack,
     Prefix       => ''
   };
 
-@attr_by_name1{qw/ 123 124/ } = (1,3);
-is_deeply \%attr_by_name1, {
-          '123' => 1,
-          '124' => 3,
-          'defaulttest' => '1'
-        }, 'check @attr_by_name1{qw/ 123 124/ } = (1,3);';
+@attr_by_name1{qw/ 123 124/} = ( 1, 3 );
+is_deeply \%attr_by_name1,
+  {
+    '123'         => 1,
+    '124'         => 3,
+    'defaulttest' => '1'
+  },
+  'check @attr_by_name1{qw/ 123 124/ } = (1,3);';
 
 %attr_by_name1 = ();
 is_deeply \%attr_by_name1, {}, 'check %attr_by_name1 = ();';
-is_deeply $obj->_orig_hash, [
-          {
-            'LocalName' => 'attr',
-            'Prefix' => 'xlink',
-            'Value' => '1',
-            'Name' => 'xlink:attr',
-            'NamespaceURI' => 'http://www.w3.org/1999/xlink'
-          },
-          {
-            'Prefix' => 'xlink',
-            'LocalName' => 'attr3',
-            'Value' => 3,
-            'Name' => 'xlink:attr3',
-            'NamespaceURI' => 'http://www.w3.org/1999/xlink'
-          }
-        ] , 'check $obj->_orig_hash';
+is_deeply $obj->_orig_hash,
+  [
+    {
+        'LocalName'    => 'attr',
+        'Prefix'       => 'xlink',
+        'Value'        => '1',
+        'Name'         => 'xlink:attr',
+        'NamespaceURI' => 'http://www.w3.org/1999/xlink'
+    },
+    {
+        'Prefix'       => 'xlink',
+        'LocalName'    => 'attr3',
+        'Value'        => 3,
+        'Name'         => 'xlink:attr3',
+        'NamespaceURI' => 'http://www.w3.org/1999/xlink'
+    }
+  ],
+  'check $obj->_orig_hash';
 

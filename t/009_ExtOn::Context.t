@@ -25,12 +25,12 @@ is_deeply$context2->get_changes, {           'ord' => 'http://org.com/ns',
 my $context3 = $context2->sub_context();
 my $map3 = $context3->get_map;
 
-diag Dumper $map3;
+#diag Dumper $map3;
 is $context3->get_uri(''), 'http://www.w3.org/2000/xmlns/', 'check default uri';
 $context3->declare_prefix(''=>"http://localhost/doc_com");
 is $context3->get_uri(''), 'http://localhost/doc_com', 'check default uri';
 
-diag Dumper $map3;
+#diag Dumper $map3;
 #is $context3->get_uri(''), 'http://www.w3.org/2000/xmlns/' 'check default uri';
 #diag Dumper { '$map1'=>$map1, '$map2'=>$map2,'$map3'=>$map3,};
 #diag Dumper $context2->get_changes;

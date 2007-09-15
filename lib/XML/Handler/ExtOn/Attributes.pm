@@ -118,8 +118,8 @@ sub by_ns_uri {
     my $self   = shift;
     my $ns_uri = shift;
     my %hash   = ();
-    my $prefix = $self->ns->get_prefix($ns_uri)
-      or die "get_prefix($ns_uri) return undef";
+    my $prefix = $self->ns->get_prefix($ns_uri);
+    die "get_prefix($ns_uri) return undef" unless defined( $prefix );
     tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->_a_stack,
       by       => 'NamespaceURI',
       value    => $ns_uri,
