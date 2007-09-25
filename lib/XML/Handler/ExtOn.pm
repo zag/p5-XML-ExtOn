@@ -1,5 +1,5 @@
 package XML::Handler::ExtOn;
-
+#$Id$
 
 =pod
 
@@ -13,7 +13,6 @@ package XML::Handler::ExtOn;
 
 =cut
 
-#$Id$
 use strict;
 use warnings;
 
