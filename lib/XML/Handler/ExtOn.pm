@@ -1,5 +1,18 @@
 package XML::Handler::ExtOn;
 
+
+=pod
+
+=head1 NAME
+
+ XML::Handler::ExtOn - SAX Handler
+
+=head1 DESCRIPTION
+
+ XML::Handler::ExtOn - SAX Handler.
+
+=cut
+
 #$Id$
 use strict;
 use warnings;
