@@ -10,11 +10,13 @@ use Data::Dumper;
 use XML::SAX::Base;
 use XML::Handler::ExtOn::Element;
 use XML::Handler::ExtOn::Context;
+use XML::Handler::ExtOn::IncXML;
 use XML::Filter::SAX1toSAX2;
 use XML::Parser::PerlSAX;
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
+$XML::Handler::ExtOn::VERSION = '0.01'; 
 ### install get/set accessors for this object.
 for my $key (qw/ context _objects_stack /) {
     no strict 'refs';
@@ -45,6 +47,17 @@ sub start_document {
     $self->on_start_document($document);
 }
 
+sub on_start_prefix_mapping {
+    my $self = shift;
+    my %map  = @_;
+    while ( my ( $pref, $ns_uri ) = each %map ) {
+        $self->SUPER::start_prefix_mapping({
+            Prefix       => $pref,
+            NamespaceURI => $ns_uri
+        });
+    }
+}
+
 =head2 start_prefix_mapping
 
 #    { Prefix => 'xlink', NamespaceURI => 'http://www.w3.org/1999/xlink' }
@@ -54,13 +67,18 @@ sub start_prefix_mapping {
     my $self = shift;
 
     #declare namespace for current context
-    #    $self->current_element->declare_prefix(@_);
-    my $context = $self->current_element || $self->context;
+    my $context = $self->context;
+    if ( my $current = $self->current_element ) {
+        $context = $current->ns;
+    }
+    my %map = ();
     foreach my $ref (@_) {
         my ( $prefix, $ns_uri ) = @{$ref}{qw/Prefix NamespaceURI/};
         $context->declare_prefix( $prefix, $ns_uri );
+        $map{$prefix} = $ns_uri;
     }
-    return $self->SUPER::start_prefix_mapping(@_);
+    # $self->SUPER::start_prefix_mapping(@_);
+    $self->on_start_prefix_mapping(%map);
 }
 
 =head2 mk_element <tag name>
@@ -91,14 +109,14 @@ Return command item  for include to stream
 =cut
 
 sub mk_from_xml {
-    my $self        = shift;
-    my $string      = shift;
-    my $skip_tmp_root = __PACKAGE__->new( Handler => $self, ExtOn_skip_root=>1 );
+    my $self          = shift;
+    my $string        = shift;
+    my $skip_tmp_root = XML::Handler::ExtOn::IncXML->new( Handler => $self );
     my $sax2_filter = XML::Filter::SAX1toSAX2->new( Handler => $skip_tmp_root );
     my $parser      = XML::Parser::PerlSAX->new(
         {
             Handler => $sax2_filter,
-            Source  => { String => $string }
+            Source  => { String => "<tmp>$string</tmp>" }
         }
     );
     return $parser;
@@ -144,8 +162,18 @@ sub characters {
     my $self = shift;
     my ($data) = @_;
 
-    #skip childs elements characters ( > 1 ) and self text ( > 0)
-    return if $self->current_element->is_skip_content;
+#skip childs elements characters ( > 1 ) and self text ( > 0)
+#    warn $self.Dumper([ map {[caller($_)]} (1..10)]) unless $self->current_element;
+    if ( $self->current_element ) {
+        return if $self->current_element->is_skip_content;
+    }
+    else {
+
+        #skip characters without element
+        return
+
+          #        #warn "characters without element"
+    }
 
     #collect chars fo current element
     if (
@@ -216,15 +244,16 @@ sub start_element {
 
             #warn Dumper( { changes => $changes } );
             for ( keys %$changes ) {
-                $self->SUPER::end_prefix_mapping(
+#                $self->SUPER::end_prefix_mapping(
+                $self->end_prefix_mapping(
                     {
                         Prefix       => $_,
                         NamespaceURI => $parent_map->{$_},
                     }
                   )
                   if exists $parent_map->{$_};
-                warn $_, $changes->{$_};
-                $self->SUPER::start_prefix_mapping(
+#                $self->SUPER::start_prefix_mapping(
+                $self->start_prefix_mapping(
                     {
                         Prefix       => $_,
                         NamespaceURI => $changes->{$_},
@@ -306,7 +335,7 @@ sub end_element {
     }
 
     #    warn Dumper($data);
-    #save element in stack
+    #pop element from stack
     my $current_obj = pop @{ $self->_objects_stack() };
 
     #setup default ns
@@ -339,14 +368,16 @@ sub end_element {
             my $changes    = $current_obj->ns->get_changes;
             my $parent_map = $current_obj->ns->parent->get_map;
             for ( keys %$changes ) {
-                $self->SUPER::end_prefix_mapping(
+#                $self->SUPER::end_prefix_mapping(
+                $self->end_prefix_mapping(
                     {
                         Prefix       => $_,
                         NamespaceURI => $changes->{$_},
                     }
                 );
                 if ( exists( $parent_map->{$_} ) ) {
-                    $self->SUPER::start_prefix_mapping(
+#                    $self->SUPER::start_prefix_mapping(
+                    $self->start_prefix_mapping(
                         {
                             Prefix       => $_,
                             NamespaceURI => $parent_map->{$_},
@@ -366,6 +397,7 @@ sub AUTOLOAD {
     return if $call eq 'DESTROY';
 
     #    warn Dumper($data);
+    #    warn $call;
     $call = "SUPER::$call";
     return $self->$call($data);
 }

@@ -89,7 +89,7 @@ sub get_by_filter {
     my $i = -1;
     foreach my $val (@$ahash) {
         $i++;
-        next unless $val->{$field_name};
+        next unless defined ($val->{$field_name});
         next unless $val->{$field_name} eq $value;
         next if defined $flocal_name && $val->{LocalName} ne $flocal_name;
         $res{$i} = $val;

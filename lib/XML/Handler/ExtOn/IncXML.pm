@@ -1,4 +1,4 @@
-package XML::Handler::ExtOn::SkipRoot;
+package XML::Handler::ExtOn::IncXML;
 use base 'XML::Handler::ExtOn';
 use strict;
 use warnings;
