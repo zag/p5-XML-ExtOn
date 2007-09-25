@@ -5,11 +5,11 @@ package XML::Handler::ExtOn;
 
 =head1 NAME
 
- XML::Handler::ExtOn - SAX Handler
+XML::Handler::ExtOn - SAX Handler
 
 =head1 DESCRIPTION
 
- XML::Handler::ExtOn - SAX Handler.
+XML::Handler::ExtOn - SAX Handler.
 
 =cut
 
