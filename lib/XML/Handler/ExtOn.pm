@@ -1,4 +1,5 @@
 package XML::Handler::ExtOn;
+
 #$Id$
 
 =pod
@@ -28,9 +29,9 @@ use XML::Parser::PerlSAX;
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::Handler::ExtOn::VERSION = '0.01'; 
+$XML::Handler::ExtOn::VERSION = '0.02';
 ### install get/set accessors for this object.
-for my $key (qw/ context _objects_stack /) {
+for my $key (qw/ context _objects_stack _cdata_mode _cdata_characters/) {
     no strict 'refs';
     *{ __PACKAGE__ . "::$key" } = sub {
         my $self = shift;
@@ -43,6 +44,9 @@ sub new {
     my $class = shift;
     my $self = &XML::SAX::Base::new( $class, @_, );
     $self->_objects_stack( [] );
+    $self->_cdata_mode(0);
+    my $buf;
+    $self->_cdata_characters( \$buf );    #setup cdata buffer
     my $doc_context = new XML::Handler::ExtOn::Context::;
     $self->context($doc_context);
     return $self;
@@ -59,21 +63,29 @@ sub start_document {
     $self->on_start_document($document);
 }
 
+=head2 on_start_prefix_mapping prefix1=>ns_uri1[, prefix2=>ns_uri2]
+
+Call then begin
+
+=cut
+
 sub on_start_prefix_mapping {
     my $self = shift;
     my %map  = @_;
     while ( my ( $pref, $ns_uri ) = each %map ) {
-        $self->SUPER::start_prefix_mapping({
-            Prefix       => $pref,
-            NamespaceURI => $ns_uri
-        });
+        $self->SUPER::start_prefix_mapping(
+            {
+                Prefix       => $pref,
+                NamespaceURI => $ns_uri
+            }
+        );
     }
 }
 
-=head2 start_prefix_mapping
+#=head2 start_prefix_mapping
 
 #    { Prefix => 'xlink', NamespaceURI => 'http://www.w3.org/1999/xlink' }
-=cut
+#=cut
 
 sub start_prefix_mapping {
     my $self = shift;
@@ -89,14 +101,12 @@ sub start_prefix_mapping {
         $context->declare_prefix( $prefix, $ns_uri );
         $map{$prefix} = $ns_uri;
     }
-    # $self->SUPER::start_prefix_mapping(@_);
     $self->on_start_prefix_mapping(%map);
 }
 
 =head2 mk_element <tag name>
 
 Return object of element item  for include to stream.
-
 
 =cut
 
@@ -134,6 +144,30 @@ sub mk_from_xml {
     return $parser;
 }
 
+=head2 mk_cdata $string | \$string
+
+return command for insert cdata to stream
+
+=cut
+
+sub mk_cdata {
+    my $self   = shift;
+    my $string = shift;
+    return { type => 'CDATA', data => ref($string) ? $string : \$string };
+}
+
+=head2 mk_characters $string | \$string
+
+return command for insert characters to stream
+
+=cut
+
+sub mk_characters {
+    my $self   = shift;
+    my $string = shift;
+    return { type => 'CHARACTERS', data => ref($string) ? $string : \$string };
+}
+
 sub __mk_element_from_sax2 {
     my $self = shift;
     my $data = shift;
@@ -161,13 +195,54 @@ sub on_start_element {
 
 =head2 on_characters( $self->current_element, $data->{Data} )
 
-return string for write 
+Must return string for write to stream
 
 =cut
 
 sub on_characters {
     my ( $self, $elem, $str ) = @_;
     return $str;
+}
+
+=head2 on_cdata ( $current_element, $data )
+
+Must return string for write to stream
+
+=cut
+
+sub on_cdata {
+    my ( $self, $elem, $str ) = @_;
+    return $str;
+}
+
+#set flag for cdata content
+
+sub start_cdata {
+    my $self = shift;
+    $self->_cdata_mode(1);
+    return;
+}
+
+#set flag to end cdata
+
+sub end_cdata {
+    my $self = shift;
+    if ( my $elem = $self->current_element
+        and defined( my $cdata_buf = ${ $self->_cdata_characters } ) )
+    {
+        if ( defined( my $data = $self->on_cdata( $elem, $cdata_buf ) ) ) {
+            $self->SUPER::start_cdata;
+            $self->SUPER::characters( { Data => $data } );
+            $self->SUPER::end_cdata;
+        }
+
+    }
+
+    #after all clear cd_data_buffer and reset cd_data mode flag
+    my $new_buf;
+    $self->_cdata_characters( \$new_buf );
+    $self->_cdata_mode(0);
+    return;
 }
 
 sub characters {
@@ -185,6 +260,12 @@ sub characters {
         return
 
           #        #warn "characters without element"
+    }
+
+    #for cdata section collect characters in buffer
+    if ( $self->_cdata_mode ) {
+        ${ $self->_cdata_characters } .= $data->{Data};
+        return;
     }
 
     #collect chars fo current element
@@ -256,7 +337,8 @@ sub start_element {
 
             #warn Dumper( { changes => $changes } );
             for ( keys %$changes ) {
-#                $self->SUPER::end_prefix_mapping(
+
+                #                $self->SUPER::end_prefix_mapping(
                 $self->end_prefix_mapping(
                     {
                         Prefix       => $_,
@@ -264,7 +346,8 @@ sub start_element {
                     }
                   )
                   if exists $parent_map->{$_};
-#                $self->SUPER::start_prefix_mapping(
+
+                #                $self->SUPER::start_prefix_mapping(
                 $self->start_prefix_mapping(
                     {
                         Prefix       => $_,
@@ -328,6 +411,16 @@ sub process_comm {
         }
         $self->end_element($comm);
     }
+    elsif ( ref($comm) eq 'HASH' and exists $comm->{type} ) {
+        if ( $comm->{type} eq 'CDATA' ) {
+            $self->start_cdata;
+            $self->characters( { Data => ${ $comm->{data} } } );
+            $self->end_cdata;
+        }
+        elsif ( $comm->{type} eq 'CHARACTERS' ) {
+            $self->characters( { Data => ${ $comm->{data} } } );
+        }
+    }
     else {
         warn " Unknown DATA $comm";
     }
@@ -380,7 +473,6 @@ sub end_element {
             my $changes    = $current_obj->ns->get_changes;
             my $parent_map = $current_obj->ns->parent->get_map;
             for ( keys %$changes ) {
-#                $self->SUPER::end_prefix_mapping(
                 $self->end_prefix_mapping(
                     {
                         Prefix       => $_,
@@ -388,7 +480,6 @@ sub end_element {
                     }
                 );
                 if ( exists( $parent_map->{$_} ) ) {
-#                    $self->SUPER::start_prefix_mapping(
                     $self->start_prefix_mapping(
                         {
                             Prefix       => $_,
@@ -401,16 +492,4 @@ sub end_element {
     }
 }
 
-sub AUTOLOAD {
-    my $self = shift;
-    my $data = shift;
-    my $call = $AUTOLOAD;
-    $call =~ s/^.*:://;
-    return if $call eq 'DESTROY';
-
-    #    warn Dumper($data);
-    #    warn $call;
-    $call = "SUPER::$call";
-    return $self->$call($data);
-}
 1;
