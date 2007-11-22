@@ -29,7 +29,7 @@ use XML::Parser::PerlSAX;
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::Handler::ExtOn::VERSION = '0.02';
+$XML::Handler::ExtOn::VERSION = '0.03';
 ### install get/set accessors for this object.
 for my $key (qw/ context _objects_stack _cdata_mode _cdata_characters/) {
     no strict 'refs';

@@ -65,10 +65,10 @@ for my $key ( keys %$attrs ) {
 sub new {
     my $class = shift;
     $class = ref $class if ref $class;
-    my $self = bless( {}, $class );
     my $orig_hash = shift || {};
+    my %props     = @_;
+    my $self      = bless( \%props, $class );
     $self->_orig_hash($orig_hash);
-    my %props = @_;
 
     #set filters by
     my $field_name = $props{by}    || 'Name';
@@ -89,7 +89,7 @@ sub get_by_filter {
     my $i = -1;
     foreach my $val (@$ahash) {
         $i++;
-        next unless defined ($val->{$field_name});
+        next unless defined( $val->{$field_name} );
         next unless $val->{$field_name} eq $value;
         next if defined $flocal_name && $val->{LocalName} ne $flocal_name;
         $res{$i} = $val;
@@ -129,9 +129,7 @@ sub STORE {
         my $new_add_to_hash = $self->create_attr($key);
         my $ahash           = $self->_orig_hash;
         while ( my ( $pkey, $pval ) = each %$new_add_to_hash ) {
-
-            #        $ahash->{$pkey} = $pval;
-            push @{$ahash}, $pval;
+        push @{$ahash}, $pval;
         }
         $self->STORE( $key, $val );
     }
@@ -151,7 +149,9 @@ sub GetKeys {
     return [ map { $_->{LocalName} } values %{ $self->get_by_filter } ];
 }
 
-sub TIEHASH { shift; return __PACKAGE__->new(@_) }
+sub TIEHASH {    #shift;
+    return &new(@_);
+}
 
 sub FIRSTKEY {
     my ($self) = @_;

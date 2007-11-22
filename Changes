@@ -1,5 +1,6 @@
 Revision history for Perl extension XML::PSAX.
 #$Id: Changes,v 1.1.1.1 2006/05/09 11:49:16 zag Exp $
+    - get attrs by name ( by_name )
 0.02 
     - add mk_characters and mk_cdata
     - add on_cdata

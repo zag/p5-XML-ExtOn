@@ -179,6 +179,12 @@ sub attrs_by_ns_uri {
     my $self = shift;
     return $self->attributes->by_ns_uri(@_);
 }
+
+sub attrs_by_name {
+    my $self = shift;
+    return $self->attributes->by_name(@_);
+}
+
 =head2 skip_content
 
 Skip entry of element. Return $self

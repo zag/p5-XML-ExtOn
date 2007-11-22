@@ -1,4 +1,5 @@
-use Test::More qw( no_plan);
+#use Test::More qw( no_plan);
+use Test::More tests=>11;
 use strict;
 use warnings;
 use Data::Dumper;
@@ -20,7 +21,6 @@ BEGIN {
 
 my $ns1     = new XML::Handler::ExtOn::Context::;
 my $context = $ns1;
-diag $ns1;
 my $t1_elemnt = {
     'Prefix'     => undef,
     'LocalName'  => 'p',
@@ -45,12 +45,11 @@ my $t1_elemnt = {
 };
 my ( $prefix1, $uri1 ) = ( 'xlink', 'http://www.w3.org/1999/xlink' );
 $ns1->declare_prefix( $prefix1, $uri1 );
-diag $ns1->get_uri('xlink');
 $ns1->declare_prefix( 'test', 'http://www.w3.org/TR/REC-html40' );
-diag $ns1->get_uri('test');
 my $element = new XML::Handler::ExtOn::Element::
   name    => "p",
-  context => $context, sax2 => $t1_elemnt;
+  context => $context,
+  sax2    => $t1_elemnt;
 ok my $ref_by_pref = $element->attrs_by_prefix($prefix1),
   "get attr by prefix: $prefix1";
 $ref_by_pref->{test} = 1;
@@ -102,6 +101,34 @@ my $context2 = new XML::Handler::ExtOn::Context::;
 my $element2 = new XML::Handler::ExtOn::Element::
   context => $context2,
   sax2    => $t2_element;
-#diag Dumper $element2->ns->get_map;
-#diag Dumper $element2->{__attrs};
+
+ok my $by_name = $element2->attributes->by_name, 'get by_name';
+isa_ok my $obj = tied %{$by_name} , 'XML::Handler::ExtOn::TieAttrsName', 'by_name';
+is_deeply $by_name,
+  {
+    'attr'        => '1',
+    'xlink:xtest' => '1',
+    'xmlns:nodef' => 'http://zag.ru',
+    'xmlns:xlink' => 'http://www.w3.org/1999/xlink'
+  },
+  'check by name';
+$by_name->{test}  = 1 ;
+is_deeply $by_name,
+ {
+           'attr' => '1',
+           'test' => 1,
+           'xlink:xtest' => '1',
+           'xmlns:nodef' => 'http://zag.ru',
+           'xmlns:xlink' => 'http://www.w3.org/1999/xlink'
+         },
+  'check create attr';
+delete $by_name->{test};
+is_deeply $by_name,
+ {
+           'attr' => '1',
+           'xlink:xtest' => '1',
+           'xmlns:nodef' => 'http://zag.ru',
+           'xmlns:xlink' => 'http://www.w3.org/1999/xlink'
+         },
+  'check delete attr';
 

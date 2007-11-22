@@ -1,4 +1,5 @@
-use Test::More qw( no_plan);
+#use Test::More qw( no_plan);
+use Test::More tests=>6;
 use strict;
 use warnings;
 use Data::Dumper;

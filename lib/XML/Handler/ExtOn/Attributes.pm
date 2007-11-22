@@ -5,6 +5,7 @@ package XML::Handler::ExtOn::Attributes;
 use Carp;
 use Data::Dumper;
 use XML::Handler::ExtOn::TieAttrs;
+use XML::Handler::ExtOn::TieAttrsName;
 for my $key (qw/ _context _a_stack/) {
     no strict 'refs';
     *{ __PACKAGE__ . "::$key" } = sub {
@@ -133,4 +134,18 @@ sub by_ns_uri {
     return \%hash
 
 }
+
+=head2 by_name
+
+Create hash for attributes by name
+
+=cut
+
+sub by_name {
+    my $self   = shift;
+    my %hash   = ();
+    tie %hash, 'XML::Handler::ExtOn::TieAttrsName', $self->_a_stack, context=>$self->_context;
+    return \%hash
+}
+
 1;
