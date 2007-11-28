@@ -1,5 +1,5 @@
 Revision history for Perl extension XML::PSAX.
-#$Id: Changes,v 1.1.1.1 2006/05/09 11:49:16 zag Exp $
+#$Id$
 0.03
     - add tests
     - documenting
