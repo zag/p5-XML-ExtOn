@@ -1,8 +1,57 @@
 package XML::Handler::ExtOn::Element;
+
+#$Id$
+
+=pod
+
+=head1 NAME
+
+XML::Handler::ExtOn::Element - Class for Element object.
+
+=head1 SYNOPSYS
+
+    use XML::Handler::ExtOn;
+    my $buf;
+    my $wrt = XML::SAX::Writer->new( Output => \$buf );
+    my $ex_parser = new XML::Handler::ExtOn:: Handler => $wrt;
+    
+    ...
+    
+    #create Element
+    my $elem = $ex_parser->mk_element("Root");
+    $elem->add_content( $elem->mk_element("tag1"));
+    
+    ...
+    
+    #delete tag from XML
+    $elem->delete_element;
+    
+    ...
+    
+    #delete tag from XML and skip content
+    $elem->delete_element->skip_content;
+    
+    ...
+    
+    #set default namespace( scoped in element )
+    $elem->add_namespace(''=>"http://example.com/defaultns");
+    
+    ...
+    
+    #get attribites by prefix
+    my $hash_ref = $elem->attrs_by_prefix('myprefix');
+    $hash_ref->{attr1} = 1;
+
+    $ex_parser->start_element($elem)
+    $ex_parser->end_element;
+
+=head1 METHODS
+
+=cut
+
 use strict;
 use warnings;
 
-use XML::NamespaceSupport;
 use Carp;
 use Data::Dumper;
 use XML::Handler::ExtOn::TieAttrs;
@@ -17,16 +66,16 @@ for my $key (qw/ _context attributes _skip_content _delete_element _stack /) {
       }
 }
 
-=head2 new name=>< element name>, context=>< context >[, sax2=><ref to sax2 structure>]
-
-Create Element object
-
-  my $element = new XML::Handler::ExtOn::Element::
-      name    => "p",
-      context => $context,
-      [sax2 => $t1_elemnt ];
-
-=cut
+# new name=>< element name>, context=>< context >[, sax2=><ref to sax2 structure>]
+#
+#Create Element object
+#
+#  my $element = new XML::Handler::ExtOn::Element::
+#      name    => "p",
+#      context => $context,
+#      [sax2 => $t1_elemnt ];
+#
+#
 
 sub new {
     my ( $class, %attr ) = @_;
@@ -54,9 +103,14 @@ sub _set_name {
     $self->{__name} = shift || return $self->{__name};
 }
 
-=head2 add_content 
+=head2 add_content <element object1>[, <element object2> ...]
 
-Add commands to content stack.Return $self
+Add commands to contents stack.Return C<$self>
+
+    $elem->add_content( 
+        $self->mk_from_xml("<p/>"),
+        $self->mk_cdata("TEST CDATA"),
+        )
 
 =cut
 
@@ -66,14 +120,10 @@ sub add_content {
     return $self
 }
 
-sub default_ns_uri {
-    return $_[0]->ns->get_uri('')
-}
 
 =head2 mk_element <tag name>
 
 Create element object  in namespace of element.
-
 
 =cut
 
@@ -102,9 +152,18 @@ sub ns {
     return $_[0]->_context;
 }
 
-=head2 add_namespace $prefix => $namespace_uri
+=head2 add_namespace <Prefix> => <Namespace_URI>, [ <Prefix1> => <Namespace_URI1>, ... ]
 
-Add Namespace mapping. return $self
+Add Namespace mapping. return C<$self>
+
+If C<Prefix> eq '', this namespace will then apply to all elements 
+that have no prefix.
+
+    $elem->add_namespace(
+        "myns" => 'http://example.com/myns',
+        "myns_test", 'http://example.com/myns_test',
+        ''=>'http://example.com/new_default_namespace'
+    );
 
 =cut
 
@@ -126,9 +185,13 @@ sub set_ns_uri {
     $self->{__ns_iri};
 }
 
+sub default_ns_uri {
+    return $_[0]->ns->get_uri('')
+}
+
 =head2 default_uri
 
-Return default Namespace_uri for elemnt scope
+Return default I<Namespace_URI> for Element scope.
 
 =cut
 
@@ -150,11 +213,9 @@ sub local_name {
     return $_[0]->_set_name();
 }
 
-=head2 to_sax2
-
-Export elemnt as SAX2 struct
-
-=cut
+# to_sax2
+#
+# Export elemnt as SAX2 struct
 
 sub to_sax2 {
     my $self = shift;
@@ -170,15 +231,33 @@ sub to_sax2 {
     return $res;
 }
 
+=head2 attrs_by_prefix <Prefix>
+
+Return reference to hash of attributes for I<Prefix>.
+
+=cut
+
 sub attrs_by_prefix {
     my $self = shift;
     return $self->attributes->by_prefix(@_);
 }
 
+=head2 attrs_by_prefix <Namespace_URI>
+
+Return reference to hash of attributes for I<Namespace_URI>.
+
+=cut
+
 sub attrs_by_ns_uri {
     my $self = shift;
     return $self->attributes->by_ns_uri(@_);
 }
+
+=head2 attrs_by_name
+
+Return reference to hash of attributes by name.
+
+=cut
 
 sub attrs_by_name {
     my $self = shift;
@@ -198,14 +277,20 @@ sub skip_content {
     $self;
 }
 
+=head2 is_skip_content
+
+Return 1 - if element marked to skip content
+
+=cut
+
 sub is_skip_content {
     my $self = shift;
     $self->_skip_content(@_) || 0
 }
 
-=head delete_element
+=head2 delete_element
 
-Delete start and close element from stream. return $self
+Delete start and close element from stream. return C<$self>
 
 =cut
 
@@ -216,9 +301,36 @@ sub delete_element {
     $self;
 }
 
+=head2 is_delete_element
+
+Return 1 - if element marked to delete
+
+=cut
+
 sub is_delete_element {
     my $self = shift;
     $self->_delete_element(@_) || 0
 }
 
 1;
+__END__
+
+
+=head1 SEE ALSO
+
+XML::Handler::ExtOn, XML::SAX::Base
+
+=head1 AUTHOR
+
+Zahatski Aliaksandr, <zag@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2007 by Zahatski Aliaksandr
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
+
