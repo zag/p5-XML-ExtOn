@@ -4,6 +4,8 @@ Module::Build->new
     license => 'perl',
    prereq => {
 	      'XML::SAX'=>'0',
+	      'XML::SAX::Writer'=>0,
+	      'XML::Parser::PerlSAX'=>0,
 	      'Tie::UnionHash'=>'0',
 	      'XML::Filter::SAX1toSAX2' =>0,
 	       },
