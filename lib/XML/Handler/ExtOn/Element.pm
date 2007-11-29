@@ -90,8 +90,9 @@ sub new {
 
     if ( my $sax2 = $attr{sax2} ) {
         $name ||= $sax2->{Name};
-        $self->set_prefix( $sax2->{Prefix} || '' );
-        $self->set_ns_uri( $self->ns->get_uri( $self->set_prefix() ) );
+        my $prefix = $sax2->{Prefix} || '';
+        $self->set_prefix(  );
+        $self->set_ns_uri( $self->ns->get_uri( $prefix ) );
     }
     $self->_stack([]);
     $self->_set_name($name);

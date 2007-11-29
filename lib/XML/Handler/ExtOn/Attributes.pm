@@ -42,11 +42,12 @@ sub new {
 
         #now set default namespaces
         # and
+        my $default_uri = $self->_context->get_uri('');
         for ( values %$sax2 ) {
 
             #save original data from changes
             my %val = %{$_};
-            $val{NamespaceURI} = $self->_context->get_uri('')
+            $val{NamespaceURI} = $default_uri
               unless $val{Prefix} || $val{Name} eq 'xmlns';
             push @a_stack, \%val;
         }
@@ -120,7 +121,7 @@ sub by_ns_uri {
     my $ns_uri = shift;
     my %hash   = ();
     my $prefix = $self->ns->get_prefix($ns_uri);
-    die "get_prefix($ns_uri) return undef" unless defined( $prefix );
+    die "get_prefix($ns_uri) return undef" unless defined($prefix);
     tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->_a_stack,
       by       => 'NamespaceURI',
       value    => $ns_uri,
@@ -142,10 +143,11 @@ Create hash for attributes by name
 =cut
 
 sub by_name {
-    my $self   = shift;
-    my %hash   = ();
-    tie %hash, 'XML::Handler::ExtOn::TieAttrsName', $self->_a_stack, context=>$self->_context;
-    return \%hash
+    my $self = shift;
+    my %hash = ();
+    tie %hash, 'XML::Handler::ExtOn::TieAttrsName', $self->_a_stack,
+      context => $self->_context;
+    return \%hash;
 }
 
 1;

@@ -60,10 +60,11 @@ sub get_map {
 sub get_uri {
     my $self = shift;
     my $prefix = shift||'';
+    my $map = $self->get_map;
     unless ( $prefix) {
-        return $self->get_map->{$prefix} || $self->get_map->{xmlns} 
+        return $map->{$prefix} || $map->{xmlns} 
     }
-    return  $self->get_map->{$prefix};
+    return  $map->{$prefix};
 }
 
 sub get_prefix {
