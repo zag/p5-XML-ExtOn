@@ -167,7 +167,7 @@ I<default namespace> and I<namespace scoping>.
 
 XML::Handler::ExtOn provide methods for create XML, such as C<mk_element>, C<mk_cdata> ...
 
-=head1 METHODS
+=head1 FUNCTIONS
 
 =cut
 
@@ -184,9 +184,33 @@ use XML::Handler::ExtOn::IncXML;
 use XML::Filter::SAX1toSAX2;
 use XML::Parser::PerlSAX;
 
+require Exporter;
+*import               = \&Exporter::import;
+@XML::Handler::ExtOn::EXPORT_OK = qw( create_pipe );
+
+=head1 create_pipe "flt_n1",{ flt_n2 => [ arg1=><val1>[,...]] }, $out_handler
+
+use last arg as handler for out
+
+return parser ref
+
+=cut
+
+sub create_pipe {
+    my @args =
+      reverse( "XML::Parser::PerlSAX", "XML::Handler::ExtOn::SAX12ExtOn", @_ );
+    my $out_handler = shift @args;
+    foreach my $f (@args) {
+        unless ( ref($f) ) {
+            $out_handler = $f->new( Handler => $out_handler );
+        }
+    }
+    return $out_handler;
+}
+
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::Handler::ExtOn::VERSION = '0.03';
+$XML::Handler::ExtOn::VERSION = '0.04';
 ### install get/set accessors for this object.
 for my $key (qw/ context _objects_stack _cdata_mode _cdata_characters/) {
     no strict 'refs';
@@ -196,6 +220,10 @@ for my $key (qw/ context _objects_stack _cdata_mode _cdata_characters/) {
         return $self->{___EXT_on_attrs}->{$key};
       }
 }
+
+=head1 METHODS
+
+=cut
 
 sub new {
     my $class = shift;
@@ -344,7 +372,7 @@ sub start_element {
         next if $uniq{$elem}++;
         unless ( $elem eq $current_obj ) {
 
-            #            warn $elem->local_name;
+         #               warn "++".$elem->local_name;
             $self->_process_comm($elem);
         }
         else {
@@ -555,7 +583,6 @@ sub end_cdata {
 sub characters {
     my $self = shift;
     my ($data) = @_;
-
 #skip childs elements characters ( > 1 ) and self text ( > 0)
 #    warn $self.Dumper([ map {[caller($_)]} (1..10)]) unless $self->current_element;
     if ( $self->current_element ) {
@@ -689,7 +716,6 @@ sub _process_comm {
     elsif ( UNIVERSAL::isa( $comm, 'XML::Handler::ExtOn::Element' ) ) {
         $self->start_element($comm);
 
-        #        warn Dumper($comm->_stack, $comm->local_name);
         while ( my $obj = shift @{ $comm->_stack } ) {
             $self->_process_comm($obj);
         }

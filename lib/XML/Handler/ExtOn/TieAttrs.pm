@@ -58,7 +58,7 @@ for my $key ( keys %$attrs ) {
 
 =head2 new
 
-   tie %hashu, 'ZagSite::HashInsensitive', \%hash1, default=><value>;
+   tie %hasha, 'XML::PSAX::TieAttrs', \%hash1, default=><value>;
 
 =cut
 
@@ -121,6 +121,7 @@ sub DELETE {
 
 sub STORE {
     my ( $self, $key, $val ) = @_;
+#    warn " store: $key, $val ";
     my ( $pkey, $fhash ) = %{ $self->get_by_filter($key) };
     if ($fhash) {
         $fhash->{Value} = $val;
@@ -191,7 +192,7 @@ Zahatski Aliaksandr, <zag@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 by Zahatski Aliaksandr
+Copyright (C) 2007-2008 by Zahatski Aliaksandr
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,

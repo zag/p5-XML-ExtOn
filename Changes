@@ -1,5 +1,8 @@
 Revision history for Perl extension XML::PSAX.
 #$Id$
+
+0.04
+    - add SAX1 to ExtOn converter 
 0.03
     - add tests
     - documenting
