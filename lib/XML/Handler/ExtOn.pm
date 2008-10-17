@@ -182,6 +182,7 @@ use XML::Handler::ExtOn::Element;
 use XML::Handler::ExtOn::Context;
 use XML::Handler::ExtOn::IncXML;
 use XML::Filter::SAX1toSAX2;
+use XML::Handler::ExtOn::SAX12ExtOn;
 use XML::Parser::PerlSAX;
 
 require Exporter;
@@ -210,7 +211,7 @@ sub create_pipe {
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::Handler::ExtOn::VERSION = '0.04';
+$XML::Handler::ExtOn::VERSION = '0.05';
 ### install get/set accessors for this object.
 for my $key (qw/ context _objects_stack _cdata_mode _cdata_characters/) {
     no strict 'refs';
@@ -284,6 +285,7 @@ sub on_start_prefix_mapping {
     my $self = shift;
     my %map  = @_;
     while ( my ( $pref, $ns_uri ) = each %map ) {
+        $self->add_namespace($pref, $ns_uri);
         $self->SUPER::start_prefix_mapping(
             {
                 Prefix       => $pref,
@@ -301,14 +303,14 @@ sub start_prefix_mapping {
     my $self = shift;
 
     #declare namespace for current context
-    my $context = $self->context;
-    if ( my $current = $self->current_element ) {
-        $context = $current->ns;
-    }
+#    my $context = $self->context;
+#    if ( my $current = $self->current_element ) {
+#        $context = $current->ns;
+#    }
     my %map = ();
     foreach my $ref (@_) {
         my ( $prefix, $ns_uri ) = @{$ref}{qw/Prefix NamespaceURI/};
-        $context->declare_prefix( $prefix, $ns_uri );
+#        $context->declare_prefix( $prefix, $ns_uri );
         $map{$prefix} = $ns_uri;
     }
     $self->on_start_prefix_mapping(%map);
@@ -736,6 +738,33 @@ sub _process_comm {
     }
 }
 
+=head2 add_namespace <Prefix> => <Namespace_URI>, [ <Prefix1> => <Namespace_URI1>, ... ]
+
+Add Namespace mapping. return C<$self>
+
+If C<Prefix> eq '', this namespace will then apply to all elements 
+that have no prefix.
+
+    $elem->add_namespace(
+        "myns" => 'http://example.com/myns',
+        "myns_test", 'http://example.com/myns_test',
+        ''=>'http://example.com/new_default_namespace'
+    );
+
+=cut
+
+sub add_namespace {
+    my $self = shift;
+    my $context = $self->context;
+    if ( my $current = $self->current_element ) {
+        $context = $current->ns;
+    }
+    my %map = @_;
+    while ( my ($prefix, $ns_uri ) = each  %map ) {
+        $context->declare_prefix( $prefix, $ns_uri ); 
+    }
+}
+
 1;
 __END__
 
@@ -750,7 +779,7 @@ Zahatski Aliaksandr, <zag@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007 by Zahatski Aliaksandr
+Copyright (C) 2007-2008 by Zahatski Aliaksandr
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,
