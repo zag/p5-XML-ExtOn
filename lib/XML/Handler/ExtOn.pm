@@ -189,11 +189,15 @@ require Exporter;
 *import               = \&Exporter::import;
 @XML::Handler::ExtOn::EXPORT_OK = qw( create_pipe );
 
-=head1 create_pipe "flt_n1",{ flt_n2 => [ arg1=><val1>[,...]] }, $out_handler
+=head1 create_pipe "flt_n1",$some_handler, $out_handler
 
-use last arg as handler for out
+use last arg as handler for out.
 
-return parser ref
+return parser ref.
+
+    my $h1     = new MyHandler1::;
+    my $filter = create_pipe( 'MyHandler1', $h1 );
+    $filter->parse('<root><p>TEST</p></root>');
 
 =cut
 
@@ -204,6 +208,10 @@ sub create_pipe {
     foreach my $f (@args) {
         unless ( ref($f) ) {
             $out_handler = $f->new( Handler => $out_handler );
+        } elsif ( UNIVERSAL::isa( $f, 'XML::SAX::Base')) {
+            $f->set_handler( $out_handler );
+            $out_handler = $f
+            
         }
     }
     return $out_handler;
@@ -211,7 +219,7 @@ sub create_pipe {
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::Handler::ExtOn::VERSION = '0.05';
+$XML::Handler::ExtOn::VERSION = '0.06';
 ### install get/set accessors for this object.
 for my $key (qw/ context _objects_stack _cdata_mode _cdata_characters/) {
     no strict 'refs';
