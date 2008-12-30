@@ -1,4 +1,4 @@
-package XML::Handler::ExtOn;
+package XML::ExtOn;
 
 #$Id$
 
@@ -6,18 +6,18 @@ package XML::Handler::ExtOn;
 
 =head1 NAME
 
-XML::Handler::ExtOn - The handler for expansion of Perl SAX by objects.
+XML::ExtOn - The handler for expansion of Perl SAX by objects.
 
 =head1 SYNOPSYS
 
-    use XML::Handler::ExtOn;
+    use XML::ExtOn;
 
 For write XML:
 
-    use XML::Handler::ExtOn;
+    use XML::ExtOn;
     my $buf;
     my $wrt = XML::SAX::Writer->new( Output => \$buf );
-    my $ex_parser = new XML::Handler::ExtOn:: Handler => $wrt;
+    my $ex_parser = new XML::ExtOn:: Handler => $wrt;
     $ex_parser->start_document;
     my $root = $ex_parser->mk_element("Root");
     $root->add_namespace(
@@ -46,7 +46,7 @@ Result:
 
 For handle events
 
-    use base 'XML::Handler::ExtOn';
+    use base 'XML::ExtOn';
 
 Begin method for handle SAX event start_element:
 
@@ -135,14 +135,14 @@ Can add element after current
 
 =head1 DESCRIPTION
 
-XML::Handler::ExtOn -  SAX Handler designed for funny work with XML. It
+XML::ExtOn -  SAX Handler designed for funny work with XML. It
 provides an easy-to-use interface for XML applications by adding objects.
 
-XML::Handler::ExtOn  override some SAX events. Each time an SAX event starts,
+XML::ExtOn  override some SAX events. Each time an SAX event starts,
 a method by that name prefixed with `on_' is called with the B<"blessed"> 
 Element object to be processed.
 
-XML::Handler::ExtOn implement the following methods:
+XML::ExtOn implement the following methods:
 
 =over
 
@@ -160,12 +160,12 @@ XML::Handler::ExtOn implement the following methods:
 
 =back
 
-XML::Handler::ExtOn  put all B<cdata> characters into a single event C<on_cdata>.
+XML::ExtOn  put all B<cdata> characters into a single event C<on_cdata>.
 
 It compliant XML namespaces (http://www.w3.org/TR/REC-xml-names/), by support 
 I<default namespace> and I<namespace scoping>.
 
-XML::Handler::ExtOn provide methods for create XML, such as C<mk_element>, C<mk_cdata> ...
+XML::ExtOn provide methods for create XML, such as C<mk_element>, C<mk_cdata> ...
 
 =head1 FUNCTIONS
 
@@ -178,16 +178,16 @@ use Carp;
 use Data::Dumper;
 
 use XML::SAX::Base;
-use XML::Handler::ExtOn::Element;
-use XML::Handler::ExtOn::Context;
-use XML::Handler::ExtOn::IncXML;
+use XML::ExtOn::Element;
+use XML::ExtOn::Context;
+use XML::ExtOn::IncXML;
 use XML::Filter::SAX1toSAX2;
-use XML::Handler::ExtOn::SAX12ExtOn;
+use XML::ExtOn::SAX12ExtOn;
 use XML::Parser::PerlSAX;
 
 require Exporter;
 *import               = \&Exporter::import;
-@XML::Handler::ExtOn::EXPORT_OK = qw( create_pipe );
+@XML::ExtOn::EXPORT_OK = qw( create_pipe );
 
 =head1 create_pipe "flt_n1",$some_handler, $out_handler
 
@@ -203,7 +203,7 @@ return parser ref.
 
 sub create_pipe {
     my @args =
-      reverse( "XML::Parser::PerlSAX", "XML::Handler::ExtOn::SAX12ExtOn", @_ );
+      reverse( "XML::Parser::PerlSAX", "XML::ExtOn::SAX12ExtOn", @_ );
     my $out_handler = shift @args;
     foreach my $f (@args) {
         unless ( ref($f) ) {
@@ -219,7 +219,7 @@ sub create_pipe {
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::Handler::ExtOn::VERSION = '0.06';
+$XML::ExtOn::VERSION = '0.07';
 ### install get/set accessors for this object.
 for my $key (qw/ context _objects_stack _cdata_mode _cdata_characters/) {
     no strict 'refs';
@@ -241,7 +241,7 @@ sub new {
     $self->_cdata_mode(0);
     my $buf;
     $self->_cdata_characters( \$buf );    #setup cdata buffer
-    my $doc_context = new XML::Handler::ExtOn::Context::;
+    my $doc_context = new XML::ExtOn::Context::;
     $self->context($doc_context);
     return $self;
 }
@@ -326,7 +326,7 @@ sub start_prefix_mapping {
 
 =head2 on_start_element $elem
 
-Method handle C<on_start_element> event whith XML::Handler::ExtOn::Element object.
+Method handle C<on_start_element> event whith XML::ExtOn::Element object.
 
 Method must return C<$elem> or ref to array of objects.
 
@@ -365,7 +365,7 @@ sub start_element {
         }
     }
     my $current_obj =
-      UNIVERSAL::isa( $data, 'XML::Handler::ExtOn::Element' )
+      UNIVERSAL::isa( $data, 'XML::ExtOn::Element' )
       ? $data
       : $self->__mk_element_from_sax2($data);
     my $res   = $self->on_start_element($current_obj);
@@ -431,7 +431,7 @@ sub start_element {
 
 =head2 on_end_element $elem
 
-Method handle C<on_end_element> event whith XML::Handler::ExtOn::Element object.
+Method handle C<on_end_element> event whith XML::ExtOn::Element object.
 It call before end if element.
 
 Method must return C<$elem> or ref to array of objects.
@@ -638,7 +638,7 @@ sub mk_element {
         $args{context} = $current_element->ns->sub_context();
     }
     $args{context} ||= $self->context->sub_context();
-    my $elem = new XML::Handler::ExtOn::Element::
+    my $elem = new XML::ExtOn::Element::
       name => $name,
       %args;
     return $elem;
@@ -653,7 +653,7 @@ Return command  for include to stream.
 sub mk_from_xml {
     my $self          = shift;
     my $string        = shift;
-    my $skip_tmp_root = XML::Handler::ExtOn::IncXML->new( Handler => $self );
+    my $skip_tmp_root = XML::ExtOn::IncXML->new( Handler => $self );
     my $sax2_filter = XML::Filter::SAX1toSAX2->new( Handler => $skip_tmp_root );
     my $parser      = XML::Parser::PerlSAX->new(
         {
@@ -723,7 +723,7 @@ sub _process_comm {
     if ( UNIVERSAL::isa( $comm, 'XML::Parser::PerlSAX' ) ) {
         $comm->parse;
     }
-    elsif ( UNIVERSAL::isa( $comm, 'XML::Handler::ExtOn::Element' ) ) {
+    elsif ( UNIVERSAL::isa( $comm, 'XML::ExtOn::Element' ) ) {
         $self->start_element($comm);
 
         while ( my $obj = shift @{ $comm->_stack } ) {
@@ -779,7 +779,7 @@ __END__
 
 =head1 SEE ALSO
 
-XML::Handler::ExtOn::Element, XML::SAX::Base
+XML::ExtOn::Element, XML::SAX::Base
 
 =head1 AUTHOR
 

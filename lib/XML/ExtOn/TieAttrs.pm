@@ -1,4 +1,4 @@
-package XML::Handler::ExtOn::TieAttrs;
+package XML::ExtOn::TieAttrs;
 
 =head1 NAME
 
@@ -22,8 +22,8 @@ use strict;
 use Carp;
 use Data::Dumper;
 require Tie::Hash;
-@XML::Handler::ExtOn::TieAttrs::ISA     = qw(Tie::StdHash);
-$XML::Handler::ExtOn::TieAttrs::VERSION = '0.01';
+@XML::ExtOn::TieAttrs::ISA     = qw(Tie::StdHash);
+$XML::ExtOn::TieAttrs::VERSION = '0.01';
 
 sub attr_from_sax2 {
     my $sax_attr = shift || {};

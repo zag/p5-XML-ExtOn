@@ -5,7 +5,7 @@ use warnings;
 use Data::Dumper;
 
 BEGIN {
-    use_ok 'XML::Handler::ExtOn';
+    use_ok 'XML::ExtOn';
     use_ok 'XML::Filter::SAX1toSAX2';
     use_ok 'XML::Parser::PerlSAX';
     use_ok 'XML::SAX::Writer';
@@ -51,7 +51,7 @@ is ( '**', $filter->{CHARS}, 'test characters');
 exit;
 
 package MyHandler1;
-use base 'XML::Handler::ExtOn';
+use base 'XML::ExtOn';
 use strict;
 use warnings;
 

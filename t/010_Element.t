@@ -5,9 +5,9 @@ use warnings;
 use Data::Dumper;
 
 BEGIN {
-    use_ok 'XML::Handler::ExtOn::TieAttrs';
-    use_ok 'XML::Handler::ExtOn::Element';
-    use_ok 'XML::Handler::ExtOn::Context';
+    use_ok 'XML::ExtOn::TieAttrs';
+    use_ok 'XML::ExtOn::Element';
+    use_ok 'XML::ExtOn::Context';
 }
 
 =pod
@@ -19,7 +19,7 @@ BEGIN {
 
 =cut
 
-my $ns1     = new XML::Handler::ExtOn::Context::;
+my $ns1     = new XML::ExtOn::Context::;
 my $context = $ns1;
 my $t1_elemnt = {
     'Prefix'     => undef,
@@ -46,7 +46,7 @@ my $t1_elemnt = {
 my ( $prefix1, $uri1 ) = ( 'xlink', 'http://www.w3.org/1999/xlink' );
 $ns1->declare_prefix( $prefix1, $uri1 );
 $ns1->declare_prefix( 'test', 'http://www.w3.org/TR/REC-html40' );
-my $element = new XML::Handler::ExtOn::Element::
+my $element = new XML::ExtOn::Element::
   name    => "p",
   context => $context,
   sax2    => $t1_elemnt;
@@ -97,13 +97,13 @@ my $t2_element = {
     'Name'         => 'nodef:p',
     'NamespaceURI' => 'http://zag.ru'
 };
-my $context2 = new XML::Handler::ExtOn::Context::;
-my $element2 = new XML::Handler::ExtOn::Element::
+my $context2 = new XML::ExtOn::Context::;
+my $element2 = new XML::ExtOn::Element::
   context => $context2,
   sax2    => $t2_element;
 
 ok my $by_name = $element2->attributes->by_name, 'get by_name';
-isa_ok my $obj = tied %{$by_name} , 'XML::Handler::ExtOn::TieAttrsName', 'by_name';
+isa_ok my $obj = tied %{$by_name} , 'XML::ExtOn::TieAttrsName', 'by_name';
 is_deeply $by_name,
   {
     'attr'        => '1',

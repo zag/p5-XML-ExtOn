@@ -5,7 +5,7 @@ use warnings;
 use Data::Dumper;
 
 BEGIN {
-    use_ok 'XML::Handler::ExtOn';
+    use_ok 'XML::ExtOn';
     use_ok 'XML::Filter::SAX1toSAX2';
     use_ok 'XML::Parser::PerlSAX';
     use_ok 'XML::SAX::Writer';
@@ -86,7 +86,7 @@ is $filter2->{_PIC},2,'check elemnts from mk_from_xml';
 #diag $$res2;
 exit;
 package MyHandler1;
-use base 'XML::Handler::ExtOn';
+use base 'XML::ExtOn';
 sub on_start_element {
     my ( $self, $elem ) = @_;
     if ( $elem->local_name eq 'test_def_ns_uri' ) {
@@ -108,7 +108,7 @@ sub on_start_element {
 package MyHandler2;
 use warnings;
 use strict;
-use base 'XML::Handler::ExtOn';
+use base 'XML::ExtOn';
 
 sub on_start_element {
     my ( $self, $elem ) = @_;
@@ -147,7 +147,7 @@ package MyHandler;
 use Data::Dumper;
 use strict;
 use warnings;
-use base 'XML::Handler::ExtOn';
+use base 'XML::ExtOn';
 
 sub on_start_element {
     my ( $self, $elem ) = @_;

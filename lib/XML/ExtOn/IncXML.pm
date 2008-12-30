@@ -1,5 +1,5 @@
-package XML::Handler::ExtOn::IncXML;
-use base 'XML::Handler::ExtOn';
+package XML::ExtOn::IncXML;
+use base 'XML::ExtOn';
 use strict;
 use warnings;
 

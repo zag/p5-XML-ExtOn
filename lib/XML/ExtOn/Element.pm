@@ -1,4 +1,4 @@
-package XML::Handler::ExtOn::Element;
+package XML::ExtOn::Element;
 
 #$Id$
 
@@ -6,14 +6,14 @@ package XML::Handler::ExtOn::Element;
 
 =head1 NAME
 
-XML::Handler::ExtOn::Element - Class for Element object.
+XML::ExtOn::Element - Class for Element object.
 
 =head1 SYNOPSYS
 
-    use XML::Handler::ExtOn;
+    use XML::ExtOn;
     my $buf;
     my $wrt = XML::SAX::Writer->new( Output => \$buf );
-    my $ex_parser = new XML::Handler::ExtOn:: Handler => $wrt;
+    my $ex_parser = new XML::ExtOn:: Handler => $wrt;
     
     ...
     
@@ -54,9 +54,9 @@ use warnings;
 
 use Carp;
 use Data::Dumper;
-use XML::Handler::ExtOn::TieAttrs;
-use XML::Handler::ExtOn::Attributes;
-use XML::Handler::ExtOn::Element;
+use XML::ExtOn::TieAttrs;
+use XML::ExtOn::Attributes;
+use XML::ExtOn::Element;
 for my $key (qw/ _context attributes _skip_content _delete_element _stack /) {
     no strict 'refs';
     *{ __PACKAGE__ . "::$key" } = sub {
@@ -70,7 +70,7 @@ for my $key (qw/ _context attributes _skip_content _delete_element _stack /) {
 #
 #Create Element object
 #
-#  my $element = new XML::Handler::ExtOn::Element::
+#  my $element = new XML::ExtOn::Element::
 #      name    => "p",
 #      context => $context,
 #      [sax2 => $t1_elemnt ];
@@ -83,7 +83,7 @@ sub new {
     $self->_context( $attr{context} ) or die "not exists context parametr";
     my $name = $attr{name};
     $self->attributes(
-        new XML::Handler::ExtOn::Attributes::
+        new XML::ExtOn::Attributes::
           context => $self->_context,
         sax2 => exists $attr{sax2} ? $attr{sax2}->{Attributes} : {}
     );
@@ -133,7 +133,7 @@ sub mk_element {
     my $name = shift;
     my %args = @_;
     $args{context} ||= $self->ns->sub_context();
-    my $elem = new XML::Handler::ExtOn::Element::
+    my $elem = new XML::ExtOn::Element::
       name => $name,
       %args;
     return $elem;
@@ -324,7 +324,7 @@ __END__
 
 =head1 SEE ALSO
 
-XML::Handler::ExtOn, XML::SAX::Base
+XML::ExtOn, XML::SAX::Base
 
 =head1 AUTHOR
 

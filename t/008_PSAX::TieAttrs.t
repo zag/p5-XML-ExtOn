@@ -5,9 +5,9 @@ use warnings;
 use Data::Dumper;
 
 BEGIN {
-    use_ok 'XML::Handler::ExtOn::TieAttrs';
-    use_ok 'XML::Handler::ExtOn::Context';
-    use_ok 'XML::Handler::ExtOn::Element';
+    use_ok 'XML::ExtOn::TieAttrs';
+    use_ok 'XML::ExtOn::Context';
+    use_ok 'XML::ExtOn::Element';
 }
 my $t1_element = {
     'Prefix'     => undef,
@@ -32,11 +32,11 @@ my $t1_element = {
     'NamespaceURI' => undef
 };
 
-my $context1 = new XML::Handler::ExtOn::Context::;
-my $element1 = new XML::Handler::ExtOn::Element::
+my $context1 = new XML::ExtOn::Context::;
+my $element1 = new XML::ExtOn::Element::
   context => $context1,
   sax2    => $t1_element;
-isa_ok $element1->attributes, 'XML::Handler::ExtOn::Attributes',
+isa_ok $element1->attributes, 'XML::ExtOn::Attributes',
   '$element1->attributes';
 my $stack = $element1->attributes->_a_stack;
 is_deeply $stack,
@@ -58,7 +58,7 @@ is_deeply $stack,
   ],
   'check stack content';
 my %attr_by_name = ();
-my $obj = tie %attr_by_name, 'XML::Handler::ExtOn::TieAttrs', $stack,
+my $obj = tie %attr_by_name, 'XML::ExtOn::TieAttrs', $stack,
   by       => 'Prefix',
   value    => 'xlink',
   template => {
@@ -106,7 +106,7 @@ is_deeply $obj->_orig_hash,
   'check  $attr_by_name{attr3} =3;delete $attr_by_name{attr2}';
 
 my %attr_by_name1 = ();
-my $obj1 = tie %attr_by_name1, 'XML::Handler::ExtOn::TieAttrs', $stack,
+my $obj1 = tie %attr_by_name1, 'XML::ExtOn::TieAttrs', $stack,
   by       => 'NamespaceURI',
   value    => 'http://www.w3.org/2000/xmlns/',
   template => {

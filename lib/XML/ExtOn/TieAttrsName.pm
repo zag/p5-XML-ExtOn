@@ -1,11 +1,11 @@
-package XML::Handler::ExtOn::TieAttrsName;
+package XML::ExtOn::TieAttrsName;
 
 #$id$
 
 use strict;
 use warnings;
-use XML::Handler::ExtOn::TieAttrs;
-use base 'XML::Handler::ExtOn::TieAttrs';
+use XML::ExtOn::TieAttrs;
+use base 'XML::ExtOn::TieAttrs';
 
 sub GetKeys {
     my $self = shift;
@@ -21,7 +21,7 @@ sub create_attr {
     my $local_name = $key;
     $template{Name} = $prefix ? "$prefix:$local_name" : $local_name;
     $template{NamespaceURI} = $self->{context}->get_uri($prefix);
-    return &XML::Handler::ExtOn::TieAttrs::attr_from_sax2( { 1 => \%template } );
+    return &XML::ExtOn::TieAttrs::attr_from_sax2( { 1 => \%template } );
 }
 
 sub get_by_filter {

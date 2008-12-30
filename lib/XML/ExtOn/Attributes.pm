@@ -1,11 +1,11 @@
-package XML::Handler::ExtOn::Attributes;
+package XML::ExtOn::Attributes;
 
 #$Id$
 
 use Carp;
 use Data::Dumper;
-use XML::Handler::ExtOn::TieAttrs;
-use XML::Handler::ExtOn::TieAttrsName;
+use XML::ExtOn::TieAttrs;
+use XML::ExtOn::TieAttrsName;
 for my $key (qw/ _context _a_stack/) {
     no strict 'refs';
     *{ __PACKAGE__ . "::$key" } = sub {
@@ -97,7 +97,7 @@ sub by_prefix {
     my %hash   = ();
     my $ns_uri = $self->ns->get_uri($prefix)
       or die "get_uri($prefix) return undef";
-    tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->_a_stack,
+    tie %hash, 'XML::ExtOn::TieAttrs', $self->_a_stack,
       by       => 'Prefix',
       value    => $prefix,
       template => {
@@ -122,7 +122,7 @@ sub by_ns_uri {
     my %hash   = ();
     my $prefix = $self->ns->get_prefix($ns_uri);
     die "get_prefix($ns_uri) return undef" unless defined($prefix);
-    tie %hash, 'XML::Handler::ExtOn::TieAttrs', $self->_a_stack,
+    tie %hash, 'XML::ExtOn::TieAttrs', $self->_a_stack,
       by       => 'NamespaceURI',
       value    => $ns_uri,
       template => {
@@ -145,7 +145,7 @@ Create hash for attributes by name
 sub by_name {
     my $self = shift;
     my %hash = ();
-    tie %hash, 'XML::Handler::ExtOn::TieAttrsName', $self->_a_stack,
+    tie %hash, 'XML::ExtOn::TieAttrsName', $self->_a_stack,
       context => $self->_context;
     return \%hash;
 }

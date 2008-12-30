@@ -5,9 +5,9 @@ use warnings;
 use Data::Dumper;
 
 BEGIN {
-    use_ok 'XML::Handler::ExtOn::Context';
+    use_ok 'XML::ExtOn::Context';
 }
-my $context1 = new XML::Handler::ExtOn::Context::;
+my $context1 = new XML::ExtOn::Context::;
 my $map1 = $context1->get_map;
 my $context2 = $context1->sub_context();
 my $map2 = $context2->get_map;

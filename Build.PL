@@ -1,6 +1,6 @@
 use Module::Build;
 Module::Build->new
-    ( module_name => 'XML::Handler::ExtOn',
+    ( module_name => 'XML::ExtOn',
     license => 'perl',
    prereq => {
 	      'XML::SAX'=>'0',

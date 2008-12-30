@@ -1,11 +1,11 @@
-package XML::Handler::ExtOn::SAX12ExtOn;
+package XML::ExtOn::SAX12ExtOn;
 #$Id$
 
 use XML::Filter::SAX1toSAX2;
-use XML::Handler::ExtOn;
+use XML::ExtOn;
 
-#use base qw/   XML::Handler::ExtOn XML::Filter::SAX1toSAX2/;
-use base qw/   XML::Handler::ExtOn/;
+#use base qw/   XML::ExtOn XML::Filter::SAX1toSAX2/;
+use base qw/   XML::ExtOn/;
 use strict;
 use warnings;
 use Data::Dumper;

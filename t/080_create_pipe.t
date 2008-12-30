@@ -8,7 +8,7 @@ use warnings;
 use Data::Dumper;
 
 BEGIN {
-    use_ok 'XML::Handler::ExtOn', 'create_pipe';
+    use_ok 'XML::ExtOn', 'create_pipe';
     use_ok 'XML::SAX::Writer';
 }
 
@@ -21,7 +21,7 @@ is $h1->{CHARS}, 'TEST', 'test create pipe with object';
 is $h1->{COUNT}, 2,      'use pipe with filter name';
 
 package MyHandler1;
-use base 'XML::Handler::ExtOn';
+use base 'XML::ExtOn';
 use strict;
 use warnings;
 

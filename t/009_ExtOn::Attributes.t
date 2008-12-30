@@ -5,8 +5,8 @@ use warnings;
 use Data::Dumper;
 
 BEGIN {
-    use_ok 'XML::Handler::ExtOn::Attributes';
-    use_ok 'XML::Handler::ExtOn::Context';
+    use_ok 'XML::ExtOn::Attributes';
+    use_ok 'XML::ExtOn::Context';
 }
 my $sax2_attr = {
     '{}attr' => {
@@ -46,8 +46,8 @@ my $sax2_attr = {
     },
 
 };
-my $context1 = new XML::Handler::ExtOn::Context::;
-my $elem1    = new XML::Handler::ExtOn::Attributes::
+my $context1 = new XML::ExtOn::Context::;
+my $elem1    = new XML::ExtOn::Attributes::
   context => $context1,
   sax2    => $sax2_attr;
 #diag Dumper $elem1->_a_stack; exit;

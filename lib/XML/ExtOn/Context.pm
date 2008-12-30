@@ -1,4 +1,4 @@
-package XML::Handler::ExtOn::Context;
+package XML::ExtOn::Context;
 use strict;
 use warnings;
 use Data::Dumper;

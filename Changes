@@ -1,6 +1,9 @@
 Revision history for Perl extension XML::PSAX.
 #$Id$
 
+0.07
+    - Change NS: XML::Handler::ExtOn -> XML::ExtOn
+
 0.06 
     - create_pipe() use already created filter
 0.05 
