@@ -3,6 +3,9 @@ Revision history for Perl extension XML::PSAX.
 
 0.07
     - Change NS: XML::Handler::ExtOn -> XML::ExtOn
+    - add mk_start_element,  mk_end_element to XML::ExtOn
+    - add insert_to method XML::ExtOn::Element
+    - add change local_name for element
 
 0.06 
     - create_pipe() use already created filter

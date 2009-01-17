@@ -57,7 +57,7 @@ use Data::Dumper;
 use XML::ExtOn::TieAttrs;
 use XML::ExtOn::Attributes;
 use XML::ExtOn::Element;
-for my $key (qw/ _context attributes _skip_content _delete_element _stack /) {
+for my $key (qw/ _context attributes _skip_content _delete_element _stack _wrap_begin _wrap_end /) {
     no strict 'refs';
     *{ __PACKAGE__ . "::$key" } = sub {
         my $self = shift;
@@ -99,6 +99,29 @@ sub new {
     return $self;
 }
 
+sub __clone1 {
+    my $self = shift;
+    my $class = ref( $self);
+    my %hash = %$self;
+    my $selfc = bless \%hash, $class;
+    $selfc->_wrap_end(0);
+    $selfc->_wrap_begin(0);
+    return $selfc;
+}
+
+sub __clone {
+    my $self = shift;
+    my $class = ref( $self);
+    my %hash = ();
+    use Tie::UnionHash;
+    tie %hash, 'Tie::UnionHash', $self, {};
+    my $selfc = bless \%hash, $class;
+    $selfc->_wrap_end(0);
+    $selfc->_wrap_begin(0);
+    return $selfc;
+}
+
+
 sub _set_name {
     my $self = shift;
     $self->{__name} = shift || return $self->{__name};
@@ -118,6 +141,20 @@ Add commands to contents stack.Return C<$self>
 sub add_content {
     my $self = shift;
     push @{$self->_stack()}, @_;
+    return $self
+}
+
+=head2 insert_to <element object>
+
+Wrap by C<element object>.Return C<$self>
+
+    $elem->insert_to( $self->mk_element('wrap') )
+
+=cut
+
+sub insert_to {
+    my $self = shift;
+    $self->_wrap_begin(shift);
     return $self
 }
 
@@ -211,7 +248,8 @@ Return localname of elemnt ( without prefix )
 =cut
 
 sub local_name {
-    return $_[0]->_set_name();
+    my $self = shift;
+    return $self->_set_name(@_);
 }
 
 # to_sax2

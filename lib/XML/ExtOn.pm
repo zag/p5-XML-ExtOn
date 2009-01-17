@@ -184,9 +184,10 @@ use XML::ExtOn::IncXML;
 use XML::Filter::SAX1toSAX2;
 use XML::ExtOn::SAX12ExtOn;
 use XML::Parser::PerlSAX;
+use Test::More;
 
 require Exporter;
-*import               = \&Exporter::import;
+*import                = \&Exporter::import;
 @XML::ExtOn::EXPORT_OK = qw( create_pipe );
 
 =head1 create_pipe "flt_n1",$some_handler, $out_handler
@@ -202,16 +203,18 @@ return parser ref.
 =cut
 
 sub create_pipe {
-    my @args =
-      reverse( "XML::Parser::PerlSAX", "XML::ExtOn::SAX12ExtOn", @_ );
+
+    my @args = reverse @_;
+
     my $out_handler = shift @args;
     foreach my $f (@args) {
         unless ( ref($f) ) {
             $out_handler = $f->new( Handler => $out_handler );
-        } elsif ( UNIVERSAL::isa( $f, 'XML::SAX::Base')) {
-            $f->set_handler( $out_handler );
+        }
+        elsif ( UNIVERSAL::isa( $f, 'XML::SAX::Base' ) ) {
+            $f->set_handler($out_handler);
             $out_handler = $f
-            
+
         }
     }
     return $out_handler;
@@ -293,7 +296,7 @@ sub on_start_prefix_mapping {
     my $self = shift;
     my %map  = @_;
     while ( my ( $pref, $ns_uri ) = each %map ) {
-        $self->add_namespace($pref, $ns_uri);
+        $self->add_namespace( $pref, $ns_uri );
         $self->SUPER::start_prefix_mapping(
             {
                 Prefix       => $pref,
@@ -311,14 +314,15 @@ sub start_prefix_mapping {
     my $self = shift;
 
     #declare namespace for current context
-#    my $context = $self->context;
-#    if ( my $current = $self->current_element ) {
-#        $context = $current->ns;
-#    }
+    #    my $context = $self->context;
+    #    if ( my $current = $self->current_element ) {
+    #        $context = $current->ns;
+    #    }
     my %map = ();
     foreach my $ref (@_) {
         my ( $prefix, $ns_uri ) = @{$ref}{qw/Prefix NamespaceURI/};
-#        $context->declare_prefix( $prefix, $ns_uri );
+
+        #        $context->declare_prefix( $prefix, $ns_uri );
         $map{$prefix} = $ns_uri;
     }
     $self->on_start_prefix_mapping(%map);
@@ -382,12 +386,15 @@ sub start_element {
         next if $uniq{$elem}++;
         unless ( $elem eq $current_obj ) {
 
-         #               warn "++".$elem->local_name;
+            #               warn "++".$elem->local_name;
             $self->_process_comm($elem);
         }
         else {
-
-            my $res_data = $self->__exp_element_to_sax2($current_obj);
+            if ( my $wrapper = $current_obj->_wrap_begin ) {
+                $current_obj->_wrap_begin(0);
+                $current_obj->_wrap_end($wrapper);
+                $self->start_element($wrapper);
+            }
 
             #register new namespaces
             my $changes    = $current_obj->ns->get_changes;
@@ -416,13 +423,22 @@ sub start_element {
 
             #save element in stack
             push @{ $self->_objects_stack() }, $current_obj;
+            my @object_stack = @{ $current_obj->_stack };
+            $current_obj->_stack( [] );
 
             #skip deleted elements from xml stream
-            $self->SUPER::start_element($res_data)
-              unless $current_obj->is_delete_element;
+            unless ( $current_obj->is_delete_element ) {
+                if ( UNIVERSAL::isa( $self->{Handler}, 'XML::ExtOn' ) ) {
+                    my $cloned = $current_obj->__clone;
+                    $self->{Handler}->start_element($cloned);
+                }
+                else {
+                    my $res_data = $self->__exp_element_to_sax2($current_obj);
+                    $self->SUPER::start_element($res_data);
+                }
+            }
             unless ( $current_obj->is_skip_content ) {
-                $self->_process_comm($_) for @{ $current_obj->_stack };
-                $current_obj->_stack( [] );
+                $self->_process_comm($_) for @object_stack;
             }
         }
 
@@ -461,6 +477,16 @@ sub on_end_element {
     return [@_];
 }
 
+#process SUPER end_element
+sub __end_element {
+    my $self = shift;
+    my @data = @_;
+
+    #    foreach my $elem {
+    #
+    #    }
+}
+
 sub end_element {
     my $self = shift;
     my $data = shift;
@@ -474,7 +500,6 @@ sub end_element {
         }
     }
 
-    #    warn Dumper($data);
     #pop element from stack
     my $current_obj = pop @{ $self->_objects_stack() };
 
@@ -488,7 +513,8 @@ sub end_element {
       ? ref($res) eq 'ARRAY' ? @{$res} : ($res)
       : ();
     push @stack, $current_obj;
-    my %uniq = ();
+    my %uniq             = ();
+    my $call_end_element = 0;
 
     #process answer
     foreach my $elem (@stack) {
@@ -505,6 +531,13 @@ sub end_element {
             }
             $self->SUPER::end_element($data)
               unless $current_obj->is_delete_element;
+            if ( my $wrapper = $current_obj->_wrap_end ) {
+                $current_obj->_wrap_end(0);
+                $self->end_element($wrapper);
+
+                #clear wrap_end attr
+            }
+
             my $changes    = $current_obj->ns->get_changes;
             my $parent_map = $current_obj->ns->parent->get_map;
             for ( keys %$changes ) {
@@ -593,6 +626,7 @@ sub end_cdata {
 sub characters {
     my $self = shift;
     my ($data) = @_;
+
 #skip childs elements characters ( > 1 ) and self text ( > 0)
 #    warn $self.Dumper([ map {[caller($_)]} (1..10)]) unless $self->current_element;
     if ( $self->current_element ) {
@@ -688,6 +722,30 @@ sub mk_characters {
     return { type => 'CHARACTERS', data => ref($string) ? $string : \$string };
 }
 
+=head2 mk_start_element <element object>
+
+return command for start element event
+
+=cut
+
+sub mk_start_element {
+    my $self = shift;
+    my $elem = shift;
+    return { type => 'START_ELEMENT', data => $elem };
+}
+
+=head2 mk_end_element <element object>
+
+return command for end element event
+
+=cut
+
+sub mk_end_element {
+    my $self = shift;
+    my $elem = shift;
+    return { type => 'END_ELEMENT', data => $elem };
+}
+
 sub __mk_element_from_sax2 {
     my $self = shift;
     my $data = shift;
@@ -729,7 +787,8 @@ sub _process_comm {
         while ( my $obj = shift @{ $comm->_stack } ) {
             $self->_process_comm($obj);
         }
-        $self->end_element($comm);
+        $self->end_element($comm)
+          ;    # unless shift; #if exists extra param not end elem
     }
     elsif ( ref($comm) eq 'HASH' and exists $comm->{type} ) {
         if ( $comm->{type} eq 'CDATA' ) {
@@ -739,6 +798,23 @@ sub _process_comm {
         }
         elsif ( $comm->{type} eq 'CHARACTERS' ) {
             $self->characters( { Data => ${ $comm->{data} } } );
+        }
+        elsif ( $comm->{type} eq 'START_ELEMENT' ) {
+           my $current_obj = $comm->{data};
+           my $res_data = $self->__exp_element_to_sax2($current_obj);
+            $self->SUPER::start_element($res_data);
+
+           #$self->start_element( $comm->{data} );
+        }
+        elsif ( $comm->{type} eq 'END_ELEMENT' ) {
+           my $current_obj = $comm->{data};
+           my $data = $current_obj->to_sax2;
+           delete $data->{Attributes};
+           $data->{NamespaceURI} = $current_obj->default_uri;
+           $self->SUPER::end_element($data)
+                         unless $current_obj->is_delete_element;
+                          
+            # $self->end_element( $comm->{data} );
         }
     }
     else {
@@ -762,14 +838,42 @@ that have no prefix.
 =cut
 
 sub add_namespace {
-    my $self = shift;
+    my $self    = shift;
     my $context = $self->context;
     if ( my $current = $self->current_element ) {
         $context = $current->ns;
     }
     my %map = @_;
-    while ( my ($prefix, $ns_uri ) = each  %map ) {
-        $context->declare_prefix( $prefix, $ns_uri ); 
+    while ( my ( $prefix, $ns_uri ) = each %map ) {
+        $context->declare_prefix( $prefix, $ns_uri );
+    }
+}
+
+#overload sub parse
+
+=head2 parse <file_handler>| <\*GLOB> | <xml string> | <ref to xml string>
+
+
+=cut
+
+sub parse {
+    my ( $self, $in ) = @_;
+    my $sax2_filter = XML::Filter::SAX1toSAX2->new( Handler => $self );
+    my $parser = XML::Parser::PerlSAX->new( { Handler => $sax2_filter } );
+    unless ( ref($in) ) {
+
+        #        $self->_process_comm( $self->mk_from_xml($in) );
+        $parser->parse( Source => { String => $in } );
+    }
+    elsif (UNIVERSAL::isa( $in, 'IO::Handle' )
+        or ( ( ref $in ) eq 'GLOB' )
+        or UNIVERSAL::isa( $in, 'Tie::Handle' ) )
+    {
+        $parser->parse( Source => { ByteStream => $in } )
+
+    }
+    else {
+        die "unknown params";
     }
 }
 
@@ -787,7 +891,7 @@ Zahatski Aliaksandr, <zag@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007-2008 by Zahatski Aliaksandr
+Copyright (C) 2007-2009 by Zahatski Aliaksandr
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,
