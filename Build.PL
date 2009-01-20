@@ -1,4 +1,5 @@
 use Module::Build;
+use 5.008001;
 Module::Build->new
     ( module_name => 'XML::ExtOn',
     license => 'perl',
