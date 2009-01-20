@@ -16,7 +16,7 @@ To install this module type the following:
 
 DEPENDENCIES
 
-This module requires  Perl 5.005 or greater and libraries:
+This module requires  Perl 5.008001 or greater and libraries:
 
 * XML::SAX
 * Tie::UnionHash

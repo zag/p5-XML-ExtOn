@@ -2,7 +2,7 @@ Revision history for Perl extension XML::PSAX.
 #$Id$
 
 0.08 
-    - fix depends ( https://rt.cpan.org/Ticket/Display.html?id=42547 )
+    - fix perl version ( https://rt.cpan.org/Ticket/Display.html?id=42547 )
 
 0.07
     - Change NS: XML::Handler::ExtOn -> XML::ExtOn
