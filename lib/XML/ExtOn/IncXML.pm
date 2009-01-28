@@ -10,4 +10,11 @@ sub on_start_element {
     }
     $elem;
 }
+
+sub context {
+    my $self = shift;
+    #Handler namespaces
+    return $self->{Handler}->context()
+}
+
 1

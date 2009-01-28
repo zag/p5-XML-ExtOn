@@ -2,13 +2,12 @@ package XML::ExtOn::TieAttrs;
 
 =head1 NAME
 
- XML::PSAX::TieAttrs
+ XML::ExtOn::TieAttrs
 
 =head1 SYNOPSIS
 
-   use XML::PSAX::TieAttrs;
-
-   tie %hasha, 'XML::PSAX::TieAttrs', \%hash1, default=><value>;
+   use XML::ExtOn::TieAttrs;
+   tie %hasha, 'XML::ExtOn::TieAttrs', \%hash1, default=><value>;
 
 =head1 DESCRIPTION
 
@@ -58,7 +57,7 @@ for my $key ( keys %$attrs ) {
 
 =head2 new
 
-   tie %hasha, 'XML::PSAX::TieAttrs', \%hash1, default=><value>;
+   tie %hasha, 'XML::ExtOn::TieAttrs', \%hash1, default=><value>;
 
 =cut
 
@@ -192,7 +191,7 @@ Zahatski Aliaksandr, <zag@cpan.org>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2007-2008 by Zahatski Aliaksandr
+Copyright (C) 2007-2009 by Zahatski Aliaksandr
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.8 or,

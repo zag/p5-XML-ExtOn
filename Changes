@@ -1,6 +1,9 @@
 Revision history for Perl extension XML::PSAX.
 #$Id$
 
+0.09
+    - fix docs
+    - fix context in XML::ExtOn::IncXML
 0.08 
     - fix perl version ( https://rt.cpan.org/Ticket/Display.html?id=42547 )
 
