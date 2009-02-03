@@ -16,7 +16,7 @@ sub create_p {
     my %args = @_;
     my $str1;
     my $w1 = XML::SAX::Writer->new( Output => \$str1 );
-    my $psax_filter = $name->new( %args, Handler => $w1, );
+    my $psax_filter = $name->new( %args );
     my $p = create_pipe( 'MyHandler1', $psax_filter, $w1 );
     $p->parse($xml);
     return $psax_filter, $str1;
@@ -29,7 +29,7 @@ sub create_p1 {
     my %args = @_;
     my $str1;
     my $w1 = XML::SAX::Writer->new( Output => \$str1 );
-    my $psax_filter = $name->new( %args, Handler => $w1, );
+    my $psax_filter = $name->new( %args, );
     my $p = create_pipe( $psax_filter, $w1 );
     $p->parse($xml);
     return $psax_filter, $str1;

@@ -190,6 +190,15 @@ require Exporter;
 *import                = \&Exporter::import;
 @XML::ExtOn::EXPORT_OK = qw( create_pipe );
 
+sub _get_end_handler {
+    my $flt     = shift;
+    my $handler = $flt->get_handler();
+#    warn "$flt -> $handler";
+    return $handler if UNIVERSAL::isa( $handler, 'XML::SAX::Writer::XML' );
+    return $flt unless UNIVERSAL::isa( $handler, 'XML::SAX::Base' );
+    return &_get_end_handler($handler);
+}
+
 =head1 create_pipe "flt_n1",$some_handler, $out_handler
 
 use last arg as handler for out.
@@ -199,6 +208,10 @@ return parser ref.
     my $h1     = new MyHandler1::;
     my $filter = create_pipe( 'MyHandler1', $h1 );
     $filter->parse('<root><p>TEST</p></root>');
+    #also create pipe of pipes
+    my $filter1 = create_pipe( 'MyHandler1', 'MyHandler2' );
+    my $h1     = new MyHandler3::;
+    my $filter2 = create_pipe(  $filter1, $h1);
 
 =cut
 
@@ -206,15 +219,27 @@ sub create_pipe {
 
     my @args = reverse @_;
 
-    my $out_handler = shift @args;
+    my $out_handler;
     foreach my $f (@args) {
         unless ( ref($f) ) {
-            $out_handler = $f->new( Handler => $out_handler );
+            unless ($out_handler) {
+                $out_handler = $f->new();
+            }
+            else {
+                $out_handler = $f->new( Handler => $out_handler );
+            }
         }
         elsif ( UNIVERSAL::isa( $f, 'XML::SAX::Base' ) ) {
-            $f->set_handler($out_handler);
-            $out_handler = $f
-
+            unless ($out_handler) {
+                $out_handler = $f;
+            }
+            else {
+                my $end_handler = &_get_end_handler($f);
+                $end_handler->set_handler($out_handler);
+                $out_handler = $f;
+            }
+        } else {
+            die "$f not SAX Drv";
         }
     }
     return $out_handler;
@@ -222,7 +247,7 @@ sub create_pipe {
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::ExtOn::VERSION = '0.09';
+$XML::ExtOn::VERSION = '0.10';
 ### install get/set accessors for this object.
 for my $key (qw/ context _objects_stack _cdata_mode _cdata_characters/) {
     no strict 'refs';
@@ -368,13 +393,28 @@ sub start_element {
             return;
         }
     }
-    my $current_obj =
-      UNIVERSAL::isa( $data, 'XML::ExtOn::Element' )
-      ? $data
-      : $self->__mk_element_from_sax2($data);
-    my $res   = $self->on_start_element($current_obj);
-    my @stack = $res
-      ? ref($res) eq 'ARRAY' ? @{$res} : ($res)
+
+    my $current_obj;
+    unless ( UNIVERSAL::isa( $data, 'XML::ExtOn::Element' ) ) {
+        $current_obj = $self->__mk_element_from_sax2($data);
+    }
+    else {
+        $current_obj = $data;
+
+        #set new context
+        my $new_context;
+        if ( my $current_element = $self->current_element ) {
+            $new_context = $current_element->ns->sub_context();
+        }
+        $new_context ||= $self->context->sub_context();
+        $current_obj->_context($new_context);
+    }
+    my $res = $self->on_start_element($current_obj);
+    my @stack =
+        $res
+      ? ref($res) eq 'ARRAY'
+          ? @{$res}
+          : ($res)
       : ();
     push @stack, $current_obj;
     my %uniq = ();
@@ -409,8 +449,7 @@ sub start_element {
                         Prefix       => $_,
                         NamespaceURI => $parent_map->{$_},
                     }
-                  )
-                  if exists $parent_map->{$_};
+                ) if exists $parent_map->{$_};
 
                 #                $self->SUPER::start_prefix_mapping(
                 $self->start_prefix_mapping(
@@ -508,9 +547,12 @@ sub end_element {
     delete $data->{Attributes};
     $data->{NamespaceURI} = $current_obj->default_uri;
 
-    my $res   = $self->on_end_element($current_obj);
-    my @stack = $res
-      ? ref($res) eq 'ARRAY' ? @{$res} : ($res)
+    my $res = $self->on_end_element($current_obj);
+    my @stack =
+        $res
+      ? ref($res) eq 'ARRAY'
+          ? @{$res}
+          : ($res)
       : ();
     push @stack, $current_obj;
     my %uniq             = ();
@@ -800,20 +842,20 @@ sub _process_comm {
             $self->characters( { Data => ${ $comm->{data} } } );
         }
         elsif ( $comm->{type} eq 'START_ELEMENT' ) {
-           my $current_obj = $comm->{data};
-           my $res_data = $self->__exp_element_to_sax2($current_obj);
+            my $current_obj = $comm->{data};
+            my $res_data    = $self->__exp_element_to_sax2($current_obj);
             $self->SUPER::start_element($res_data);
 
-           #$self->start_element( $comm->{data} );
+            #$self->start_element( $comm->{data} );
         }
         elsif ( $comm->{type} eq 'END_ELEMENT' ) {
-           my $current_obj = $comm->{data};
-           my $data = $current_obj->to_sax2;
-           delete $data->{Attributes};
-           $data->{NamespaceURI} = $current_obj->default_uri;
-           $self->SUPER::end_element($data)
-                         unless $current_obj->is_delete_element;
-                          
+            my $current_obj = $comm->{data};
+            my $data        = $current_obj->to_sax2;
+            delete $data->{Attributes};
+            $data->{NamespaceURI} = $current_obj->default_uri;
+            $self->SUPER::end_element($data)
+              unless $current_obj->is_delete_element;
+
             # $self->end_element( $comm->{data} );
         }
     }

@@ -1,6 +1,9 @@
 Revision history for Perl extension XML::ExtOn.
 #$Id$
 
+0.10
+    - fix context for namespaces
+    - do create_pipe reentable
 0.09
     - fix docs
     - fix context in XML::ExtOn::IncXML
