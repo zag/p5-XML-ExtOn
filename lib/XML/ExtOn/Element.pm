@@ -80,7 +80,7 @@ for my $key (qw/ _context attributes _skip_content _delete_element _stack _wrap_
 sub new {
     my ( $class, %attr ) = @_;
     my $self = bless {}, $class;
-    $self->_context( $attr{context} ) or die "not exists context parametr";
+    $self->_context( $attr{context} ) or die "not exists context parameter";
     my $name = $attr{name};
     $self->attributes(
         new XML::ExtOn::Attributes::
