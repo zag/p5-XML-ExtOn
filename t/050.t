@@ -133,7 +133,7 @@ sub on_start_element {
     if ( local_name $elem eq 'pic') {
         $self->{_PIC}++ ;
     }
-
+    return $elem
 
 }
 sub on_end_element {
