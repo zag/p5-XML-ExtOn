@@ -247,7 +247,7 @@ sub create_pipe {
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::ExtOn::VERSION = '0.10';
+$XML::ExtOn::VERSION = '0.11';
 ### install get/set accessors for this object.
 for my $key (qw/ context _objects_stack _cdata_mode _cdata_characters/) {
     no strict 'refs';
@@ -844,16 +844,17 @@ sub _process_comm {
         elsif ( $comm->{type} eq 'START_ELEMENT' ) {
             my $current_obj = $comm->{data};
             my $res_data    = $self->__exp_element_to_sax2($current_obj);
-            $self->SUPER::start_element($res_data);
+#            $self->SUPER::start_element($res_data);
 
-            #$self->start_element( $comm->{data} );
+            $self->start_element( $comm->{data} );
         }
         elsif ( $comm->{type} eq 'END_ELEMENT' ) {
             my $current_obj = $comm->{data};
             my $data        = $current_obj->to_sax2;
             delete $data->{Attributes};
             $data->{NamespaceURI} = $current_obj->default_uri;
-            $self->SUPER::end_element($data)
+            $self->end_element( $comm->{data} )
+#             $self->SUPER::end_element($data)
               unless $current_obj->is_delete_element;
 
             # $self->end_element( $comm->{data} );

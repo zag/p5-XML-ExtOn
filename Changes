@@ -1,6 +1,9 @@
 Revision history for Perl extension XML::ExtOn.
 #$Id$
 
+    - fix syntax
+0.11
+    - fix filenames for tests [https://rt.cpan.org/Public/Bug/Display.html?id=49512]
 0.10
     - fix context for namespaces
     - do create_pipe reentable
