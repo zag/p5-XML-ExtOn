@@ -83,6 +83,7 @@ EON
 ok ! $filter2->{testembd_present}, 'test skip_content';
 ok $filter2->{ok_present}, 'test mk_element handle';
 is $filter2->{_PIC},2,'check elemnts from mk_from_xml';
+#warn $res2;
 #diag $$res2;
 exit;
 package MyHandler1;
@@ -126,7 +127,7 @@ sub on_start_element {
         $self->{ok_present} = 1
     }
     if ( local_name $elem eq 'ext_xml') {
-        $elem->delete_element->skip_content;
+       $elem->delete_element->skip_content;
         return [ $self->mk_from_xml('<pic />'), $elem]
     
     }

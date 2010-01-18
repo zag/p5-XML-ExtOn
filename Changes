@@ -1,6 +1,8 @@
 Revision history for Perl extension XML::ExtOn.
 #$Id$
 
+0.12
+    - add wrap_around 
     - fix syntax
 0.11
     - fix filenames for tests [https://rt.cpan.org/Public/Bug/Display.html?id=49512]

@@ -57,7 +57,7 @@ use Data::Dumper;
 use XML::ExtOn::TieAttrs;
 use XML::ExtOn::Attributes;
 use XML::ExtOn::Element;
-for my $key (qw/ _context attributes _skip_content _delete_element _stack _wrap_begin _wrap_end /) {
+for my $key (qw/ _context attributes _skip_content _delete_element _stack _wrap_begin _wrap_end   _wrap_around_start _wrap_around_end/) {
     no strict 'refs';
     *{ __PACKAGE__ . "::$key" } = sub {
         my $self = shift;
@@ -95,6 +95,10 @@ sub new {
         $self->set_ns_uri( $self->ns->get_uri( $prefix ) );
     }
     $self->_stack([]);
+    $self->_wrap_around_start([]);
+    $self->_wrap_around_end([]);
+    $self->_wrap_begin([]);
+    $self->_wrap_end([]);
     $self->_set_name($name);
     return $self;
 }
@@ -104,8 +108,8 @@ sub __clone1 {
     my $class = ref( $self);
     my %hash = %$self;
     my $selfc = bless \%hash, $class;
-    $selfc->_wrap_end(0);
-    $selfc->_wrap_begin(0);
+    $selfc->_wrap_end([]);
+    $selfc->_wrap_begin([]);
     return $selfc;
 }
 
@@ -116,8 +120,11 @@ sub __clone {
     use Tie::UnionHash;
     tie %hash, 'Tie::UnionHash', $self, {};
     my $selfc = bless \%hash, $class;
-    $selfc->_wrap_end(0);
-    $selfc->_wrap_begin(0);
+    $selfc->_wrap_end([]);
+    $selfc->_wrap_begin([]);
+    $selfc->_wrap_around_start([]);
+    $selfc->_wrap_around_end([]);
+    $selfc->_stack([]);
     return $selfc;
 }
 
@@ -154,10 +161,27 @@ Wrap by C<element object>.Return C<$self>
 
 sub insert_to {
     my $self = shift;
-    $self->_wrap_begin(shift);
+    if ( @_ ) {
+        push @{$self->_wrap_begin()}, @_;
+        push @{$self->_wrap_end()}, @_
+    }
     return $self
 }
 
+=head2 wrap_around (element object)
+
+Wrap around  C<element object>.Return C<$self>
+
+=cut
+
+sub wrap_around {
+    my $self= shift;
+    if ( @_ ) {
+        push @{$self->_wrap_around_start()}, @_;
+        push @{$self->_wrap_around_end()}, @_
+    }
+    $self
+}
 
 =head2 mk_element <tag name>
 
