@@ -248,7 +248,7 @@ sub create_pipe {
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::ExtOn::VERSION = '0.12';
+$XML::ExtOn::VERSION = '0.13';
 ### install get/set accessors for this object.
 for my $key (
     qw/ context _objects_stack _cdata_mode _cdata_characters _root_stack /)

@@ -12,6 +12,7 @@ Module::Build->new
 	      'XML::Parser::PerlSAX'=>0,
 	      'Tie::UnionHash'=>'0',
 	      'XML::Filter::SAX1toSAX2' =>0,
+	      'XML::Flow' =>'0.85',
 	       },
     create_makefile_pl=>$ENV{DO_OUTCPAN} ? 'traditional':'passthrough'
     )->create_build_script;
