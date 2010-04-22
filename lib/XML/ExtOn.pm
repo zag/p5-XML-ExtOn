@@ -188,7 +188,7 @@ use Test::More;
 
 require Exporter;
 *import                = \&Exporter::import;
-@XML::ExtOn::EXPORT_OK = qw( create_pipe );
+@XML::ExtOn::EXPORT_OK = qw( create_pipe split_pipe);
 
 sub _get_end_handler {
     my $flt     = shift;
@@ -246,9 +246,35 @@ sub create_pipe {
     return $out_handler;
 }
 
+=head1  split_pipe $filter
+
+return ref to array  of filters in pipe
+
+
+    use XML::ExtOn qw(split_pipe create_pipe);
+    my $filter = create_pipe( 'MyHandler1', 'MyHandler2','MyHandler3');
+    my $ref = @{ split_pipe( $filter) } [-1];
+    isa_ok $ref,  'MyHandler3', 'check last element';
+
+=cut
+
+sub split_pipe {
+    my $filter = shift || return [];
+    my @res = ($filter);
+
+    # use SAXed variable see XML::SAX::Base::get_handler()
+    if ( my $next = $filter->{Handler} ) {
+        #skip special SAX handlers
+        unless ( UNIVERSAL::isa( $next, 'XML::SAX::Base::NoHandler' ) ) {
+            push @res, @{ split_pipe($next) };
+        }
+    }
+    return \@res;
+}
+
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::ExtOn::VERSION = '0.13';
+$XML::ExtOn::VERSION = '0.14';
 ### install get/set accessors for this object.
 for my $key (
     qw/ context _objects_stack _cdata_mode _cdata_characters _root_stack /)
@@ -706,12 +732,12 @@ sub end_element {
         }
     }
 
-#    warn ref($self).":END for " . $data->local_name;
-#    if ( my $started = $data->{_expanded_on_start} )  {
-#        for ( 1..$started-1 ) {
-#            $self->__end_element($data);
-#        }
-#    }
+    #    warn ref($self).":END for " . $data->local_name;
+    #    if ( my $started = $data->{_expanded_on_start} )  {
+    #        for ( 1..$started-1 ) {
+    #            $self->__end_element($data);
+    #        }
+    #    }
     return $self->__end_element($data);
 }
 
@@ -863,7 +889,8 @@ sub end_cdata {
 sub characters {
     my $self = shift;
     my ($data) = @_;
-#    warn "$self do chars" . $data->{Data};
+
+    #    warn "$self do chars" . $data->{Data};
 
     #skip childs elements characters ( > 1 ) and self text ( > 0)
     if ( $self->current_element ) {
@@ -877,6 +904,7 @@ sub characters {
 
     #for cdata section collect characters in buffer
     if ( $self->_cdata_mode ) {
+
 #        warn "$self do CDATA" . $data->{Data};
 #        warn  " $self CDTATA" . Dumper( [ map { [ caller($_) ] } ( 0 .. 10 ) ] );
 #      unless defined $data;
@@ -984,7 +1012,7 @@ sub mk_process_stack {
     my $self    = shift;
     my $elem    = shift;
     my @objects = @{ $elem->_stack };
-    $elem->_stack([]);
+    $elem->_stack( [] );
     return { type => 'STACK', data => $elem, objects => \@objects };
 }
 
@@ -1075,24 +1103,33 @@ sub _process_comm {
         $comm->parse;
     }
     elsif ( UNIVERSAL::isa( $comm, 'XML::ExtOn::Element' ) ) {
-#        warn ref($self)."start ELEMENT " . $comm->local_name;
+
+        #        warn ref($self)."start ELEMENT " . $comm->local_name;
         $self->__start_element($comm);
 
-#        while ( my $obj = shift @{ $comm->_stack } ) {
-#            $self->_process_comm($obj);
-#        }
+        #        while ( my $obj = shift @{ $comm->_stack } ) {
+        #            $self->_process_comm($obj);
+        #        }
         $self->__end_element($comm);
-#        warn ref($self)."end ELEMENT " . $comm->local_name;
-          ;    # unless shift; #if exists extra param not end elem
+
+        #        warn ref($self)."end ELEMENT " . $comm->local_name;
+        ;    # unless shift; #if exists extra param not end elem
     }
     elsif ( ref($comm) eq 'HASH' and exists $comm->{type} ) {
         if ( $comm->{type} eq 'CDATA' ) {
+
             #warn "$self : DO CDATA!!!";
             $self->start_cdata;
             $self->characters( { Data => ${ $comm->{data} } } );
             $self->end_cdata;
         }
         elsif ( $comm->{type} eq 'CHARACTERS' ) {
+            unless ( ref( $comm->{data} ) eq 'SCALAR' ) {
+                warn "NOT REF" . Dumper $comm;
+                warn "empty" . Dumper( [ map { [ caller($_) ] } ( 0 .. 16 ) ] );
+                exit;
+
+            }
             $self->characters( { Data => ${ $comm->{data} } } );
         }
         elsif ( $comm->{type} eq 'START_ELEMENT' ) {
@@ -1106,24 +1143,27 @@ sub _process_comm {
         elsif ( $comm->{type} eq 'STACK' ) {
             my $stack = $comm->{objects};
             my $comm  = $comm->{data};
-#            warn "$self: ",
-#              $comm->local_name . " stack: " . scalar( @{$stack} ) . Dumper(
-#                [
-#                    map {
-#                        ref($_) eq 'HASH'
-#                          ? $_->{type} . ":" . '$_->{data}->local_name'
-#                          : $_->local_name
-#                      } @$stack
-#                ]
-#              );
-#            warn ref($self)."START PROCESS STACK ".$comm->local_name;
+
+   #            warn "$self: ",
+   #              $comm->local_name . " stack: " . scalar( @{$stack} ) . Dumper(
+   #                [
+   #                    map {
+   #                        ref($_) eq 'HASH'
+   #                          ? $_->{type} . ":" . '$_->{data}->local_name'
+   #                          : $_->local_name
+   #                      } @$stack
+   #                ]
+   #              );
+   #            warn ref($self)."START PROCESS STACK ".$comm->local_name;
             while ( my $obj = shift @{$stack} ) {
 
-#                warn "$self start STACK: ".$obj;
+                #                warn "$self start STACK: ".$obj;
                 $self->_process_comm($obj);
-#                warn "$self end STACK: ".$obj;
+
+                #                warn "$self end STACK: ".$obj;
             }
-#            warn ref($self)."END PROCESS STACK ".$comm->local_name;
+
+            #            warn ref($self)."END PROCESS STACK ".$comm->local_name;
 
         }
         elsif ( $comm->{type} eq 'EV_START_ELEMENT' ) {

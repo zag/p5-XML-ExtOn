@@ -1,6 +1,8 @@
 Revision history for Perl extension XML::ExtOn.
 #$Id$
 
+0.14 
+    - add function split_pipe
 0.13
     -fix depends
 0.12
