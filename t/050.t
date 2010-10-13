@@ -8,14 +8,14 @@ BEGIN {
     use_ok 'XML::ExtOn';
     use_ok 'XML::Filter::SAX1toSAX2';
     use_ok 'XML::Parser::PerlSAX';
-    use_ok 'XML::SAX::Writer';
+    use_ok 'XML::ExtOn::Writer';
 }
 
 sub create_parser {
     my $name = shift;
     my $xml  = shift;
     my $str1;
-    my $w1          = XML::SAX::Writer->new( Output         => \$str1 );
+    my $w1          = XML::ExtOn::Writer->new( Output         => \$str1 );
     my $psax_filter = $name->new( Handler                   => $w1 );
     my $sax2_filter = XML::Filter::SAX1toSAX2->new( Handler => $psax_filter );
     my $parser      = XML::Parser::PerlSAX->new( Handler    => $sax2_filter );

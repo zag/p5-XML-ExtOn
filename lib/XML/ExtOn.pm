@@ -16,7 +16,7 @@ For write XML:
 
     use XML::ExtOn;
     my $buf;
-    my $wrt = XML::SAX::Writer->new( Output => \$buf );
+    my $wrt = XML::ExtOn::Writer->new( Output => \$buf );
     my $ex_parser = new XML::ExtOn:: Handler => $wrt;
     $ex_parser->start_document;
     my $root = $ex_parser->mk_element("Root");
@@ -194,6 +194,7 @@ sub _get_end_handler {
     my $flt     = shift;
     my $handler = $flt->get_handler();
 
+    return $handler if UNIVERSAL::isa( $handler, 'XML::ExtOn::Writer' );
     return $handler if UNIVERSAL::isa( $handler, 'XML::SAX::Writer::XML' );
     return $flt unless UNIVERSAL::isa( $handler, 'XML::SAX::Base' );
     return &_get_end_handler($handler);
@@ -274,7 +275,7 @@ sub split_pipe {
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::ExtOn::VERSION = '0.14';
+$XML::ExtOn::VERSION = '0.15';
 ### install get/set accessors for this object.
 for my $key (
     qw/ context _objects_stack _cdata_mode _cdata_characters _root_stack /)
@@ -960,7 +961,7 @@ sub mk_from_xml {
     my $parser = XML::Parser::PerlSAX->new(
         {
             Handler => $sax2_filter,
-            Source  => { String => "<tmp>$string</tmp>" }
+            Source  => { String => "<tmp>$string</tmp>" },
         }
     );
     return $parser;
@@ -1100,7 +1101,11 @@ sub _process_comm {
     my $self = shift;
     my $comm = shift || return;
     if ( UNIVERSAL::isa( $comm, 'XML::Parser::PerlSAX' ) ) {
-        $comm->parse;
+        $comm->parse();
+    }
+    elsif ( UNIVERSAL::isa( $comm, 'XML::Parser' ) ) {
+        warn "parser!";
+        $comm->parse();
     }
     elsif ( UNIVERSAL::isa( $comm, 'XML::ExtOn::Element' ) ) {
 

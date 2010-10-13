@@ -8,11 +8,11 @@ use Data::Dumper;
 
 BEGIN {
     use_ok 'XML::ExtOn', 'create_pipe';
-    use_ok 'XML::SAX::Writer';
+    use_ok 'XML::ExtOn::Writer';
 }
 
 my $str;
-my $w1     = XML::SAX::Writer->new( Output => \$str );
+my $w1     = XML::ExtOn::Writer->new( Output => \$str );
 my $h1     = new MyHandler1::;
 
 #check paraents 

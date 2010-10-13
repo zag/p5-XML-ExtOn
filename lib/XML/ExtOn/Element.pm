@@ -12,7 +12,7 @@ XML::ExtOn::Element - Class for Element object.
 
     use XML::ExtOn;
     my $buf;
-    my $wrt = XML::SAX::Writer->new( Output => \$buf );
+    my $wrt = XML::ExtOn::Writer->new( Output => \$buf );
     my $ex_parser = new XML::ExtOn:: Handler => $wrt;
     
     ...

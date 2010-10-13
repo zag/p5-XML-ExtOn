@@ -13,7 +13,7 @@ use Data::Dumper;
 
 BEGIN {
     use_ok 'XML::ExtOn', 'split_pipe', 'create_pipe';
-    use_ok 'XML::SAX::Writer';
+    use_ok 'XML::ExtOn::Writer';
 }
 
 my $filter = create_pipe( 'MyHandler1', 'MyHandler2','MyHandler3');

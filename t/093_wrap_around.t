@@ -15,7 +15,7 @@ use XML::Flow;
 
 BEGIN {
     use_ok 'XML::ExtOn', 'create_pipe';
-    use_ok 'XML::SAX::Writer';
+    use_ok 'XML::ExtOn::Writer';
 }
 
 sub create_p {
@@ -23,7 +23,7 @@ sub create_p {
     my $xml  = shift;
     my %args = @_;
     my $str1;
-    my $w1          = XML::SAX::Writer->new( Output => \$str1 );
+    my $w1          = XML::ExtOn::Writer->new( Output => \$str1 );
     my $psax_filter = $name->new( %args, );
     my $p           = create_pipe( $psax_filter, $w1 );
     $p->parse($xml);
