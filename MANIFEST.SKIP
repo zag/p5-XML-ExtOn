@@ -1,3 +1,6 @@
+# Avoid configuration metadata file
+^MYMETA\.
+
 ~$
 \.bak$
 \.tar\.gz$

@@ -1,6 +1,8 @@
 Revision history for Perl extension XML::ExtOn.
 #$Id$
 
+0.16
+    - fix distr
 0.15
     - disallow escape entity in out XML
 0.14 
