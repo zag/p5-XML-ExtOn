@@ -275,7 +275,7 @@ sub split_pipe {
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::ExtOn::VERSION = '0.16';
+$XML::ExtOn::VERSION = '0.17';
 ### install get/set accessors for this object.
 for my $key (
     qw/ context _objects_stack _cdata_mode _cdata_characters _root_stack /)
@@ -409,7 +409,9 @@ sub on_start_element {
 sub __expand_on_start {
     my $self = shift;
     my $obj  = shift || return [];
+#    warn "before _expand $obj".Dumper($obj) if $obj->local_name eq 'feed';
     my $res  = $self->on_start_element($obj);
+#    warn "_expand $obj".Dumper($res , $obj) if $obj->local_name eq 'feed';
     my @stack =
         $res
       ? ref($res) eq 'ARRAY'
@@ -497,6 +499,11 @@ sub start_element {
             $new_context = $current_root_element->ns->sub_context();
         }
         $new_context ||= $self->context->sub_context();
+        #save changes (for namespaces)
+        my $changes = $current_obj->ns->get_changes();
+        while (my ($prefix, $val) = each %$changes) {
+            $new_context->declare_prefix($prefix, $val);
+        }
         $current_obj->_context($new_context);
     }
 
@@ -536,7 +543,6 @@ sub __start_element {
     #call __start_element
     my $res = $self->__expand_on_start($current_obj);
     $current_obj->{_expanded_on_start} = scalar(@$res);
-
 #    warn ref($self) . "start_exp: " . $current_obj->local_name . ": " . Dumper(
 #        [
 #            map {
@@ -569,7 +575,6 @@ sub __start_element {
                         NamespaceURI => $parent_map->{$_},
                     }
                 ) if exists $parent_map->{$_};
-
                 $self->start_prefix_mapping(
                     {
                         Prefix       => $_,
@@ -1175,7 +1180,6 @@ sub _process_comm {
             my $current_obj = $comm->{data};
 
             #            warn "$self: ev_START".$current_obj->local_name;
-
             #register new namespaces
             my $changes    = $current_obj->ns->get_changes;
             my $parent_map = $current_obj->ns->parent->get_map;
