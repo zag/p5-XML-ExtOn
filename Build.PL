@@ -8,10 +8,12 @@ Module::Build->new
 	},
     prereq => {
 	      'XML::SAX'=>'0',
+	      'XML::SAX::Base' => 0,
 	      'XML::SAX::Writer'=>0,
 	      'XML::Parser::PerlSAX'=>0,
+	      'XML::SAX::ParserFactory' => 0,
 	      'Tie::UnionHash'=>'0',
-	      'XML::Filter::SAX1toSAX2' =>0,
+	      'XML::NamespaceSupport' =>0,
 	      'XML::Flow' =>'0.85',
 	       },
     create_makefile_pl=>$ENV{DO_OUTCPAN} ? 'traditional':'passthrough'

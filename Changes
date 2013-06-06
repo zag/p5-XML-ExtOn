@@ -1,6 +1,8 @@
 Revision history for Perl extension XML::ExtOn.
 #$Id$
 
+0.18
+    - incluse XML::Filter::SAX1toSAX2 in distr as XML::ExtOn::SAX1toSAX2
 0.17
     - fix namespaces
 0.16

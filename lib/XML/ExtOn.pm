@@ -181,7 +181,7 @@ use XML::SAX::Base;
 use XML::ExtOn::Element;
 use XML::ExtOn::Context;
 use XML::ExtOn::IncXML;
-use XML::Filter::SAX1toSAX2;
+use XML::ExtOn::SAX1toSAX2;
 use XML::ExtOn::SAX12ExtOn;
 use XML::Parser::PerlSAX;
 use Test::More;
@@ -275,7 +275,7 @@ sub split_pipe {
 
 use base 'XML::SAX::Base';
 use vars qw( $AUTOLOAD);
-$XML::ExtOn::VERSION = '0.17';
+$XML::ExtOn::VERSION = '0.18';
 ### install get/set accessors for this object.
 for my $key (
     qw/ context _objects_stack _cdata_mode _cdata_characters _root_stack /)
@@ -962,7 +962,7 @@ sub mk_from_xml {
     my $string = shift;
     my $skip_tmp_root =
       XML::ExtOn::IncXML->new( Handler => $self, __make_self_events => 1 );
-    my $sax2_filter = XML::Filter::SAX1toSAX2->new( Handler => $skip_tmp_root );
+    my $sax2_filter = XML::ExtOn::SAX1toSAX2->new( Handler => $skip_tmp_root );
     my $parser = XML::Parser::PerlSAX->new(
         {
             Handler => $sax2_filter,
@@ -1318,7 +1318,7 @@ sub add_namespace {
 
 sub parse {
     my ( $self, $in ) = @_;
-    my $sax2_filter = XML::Filter::SAX1toSAX2->new( Handler => $self );
+    my $sax2_filter = XML::ExtOn::SAX1toSAX2->new( Handler => $self );
     my $parser = XML::Parser::PerlSAX->new( { Handler => $sax2_filter } );
     unless ( ref($in) ) {
 
